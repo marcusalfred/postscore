@@ -1,4 +1,4 @@
-![logo](./postscore.svg)
+![logo](./logo.png)
 
 # POSTScore
 POSTScore is a simple REST API that allows golfers to track their scores.
