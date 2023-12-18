@@ -1,18 +1,22 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, create_engine, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
-from db import SessionLocal
-from datetime import datetime
-from pydantic import BaseModel, Field, validator
-import datetime
+'''
+Models
+'''
+
+from enum import Enum
 from typing import List, Optional
+import datetime
+from db import SessionLocal
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
+from pydantic import BaseModel, Field, validator
+
 
 Base = declarative_base()
 
 class Player(Base):
-    __tablename__ = "players"
+    __tablename__ = 'players'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     email = Column(String)
@@ -20,7 +24,7 @@ class Player(Base):
     ghin_number = Column(Integer)
     handicap = Column(Integer)
     pid = Column(UUID(as_uuid=True))
-    rounds = relationship("Round", back_populates="player", cascade="all, delete")
+    rounds = relationship('Round', back_populates='player', cascade='all, delete')
 
 class PlayerRequest(BaseModel):
     name: str
@@ -35,9 +39,9 @@ class PlayerResponse(BaseModel):
     name: str
     email: str
 
-class Course(Base): 
-    __tablename__ = "courses"  
-    id = Column(Integer, primary_key=True) 
+class Course(Base):
+    __tablename__ = 'courses'
+    id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
     address = Column(String(50))
     city = Column(String(50))
@@ -82,65 +86,65 @@ class Course(Base):
     hole17_handicap = Column(Integer)
     hole18_handicap = Column(Integer)
     created_on = Column(DateTime, default=datetime.datetime.utcnow)
-    tees = relationship("TeeBox", back_populates="course", cascade="all, delete") 
-    rounds = relationship("Round", back_populates="course")
+    tees = relationship('TeeBox', back_populates='course', cascade='all, delete')
+    rounds = relationship('Round', back_populates='course')
 
 
 class CourseRequest(BaseModel):
     name: str
     address: str
-    city: str  
-    state: str 
-    zip: int 
-    website: str  
-    par: int 
-    hole1_par: int 
-    hole2_par: int 
-    hole3_par: int 
-    hole4_par: int 
-    hole5_par: int 
-    hole6_par: int 
-    hole7_par: int 
-    hole8_par: int 
-    hole9_par: int 
-    hole10_par: int 
-    hole11_par: int 
-    hole12_par: int 
-    hole13_par: int 
-    hole14_par: int 
-    hole15_par: int 
-    hole16_par: int 
-    hole17_par: int 
-    hole18_par: int 
-    hole1_handicap: int 
-    hole2_handicap: int 
-    hole3_handicap: int 
-    hole4_handicap: int 
-    hole5_handicap: int 
-    hole6_handicap: int 
-    hole7_handicap: int 
-    hole8_handicap: int 
-    hole9_handicap: int 
-    hole10_handicap: int 
-    hole11_handicap: int 
-    hole12_handicap: int 
-    hole13_handicap: int 
-    hole14_handicap: int 
-    hole15_handicap: int 
-    hole16_handicap: int 
-    hole17_handicap: int 
+    city: str
+    state: str
+    zip: int
+    website: str
+    par: int
+    hole1_par: int
+    hole2_par: int
+    hole3_par: int
+    hole4_par: int
+    hole5_par: int
+    hole6_par: int
+    hole7_par: int
+    hole8_par: int
+    hole9_par: int
+    hole10_par: int
+    hole11_par: int
+    hole12_par: int
+    hole13_par: int
+    hole14_par: int
+    hole15_par: int
+    hole16_par: int
+    hole17_par: int
+    hole18_par: int
+    hole1_handicap: int
+    hole2_handicap: int
+    hole3_handicap: int
+    hole4_handicap: int
+    hole5_handicap: int
+    hole6_handicap: int
+    hole7_handicap: int
+    hole8_handicap: int
+    hole9_handicap: int
+    hole10_handicap: int
+    hole11_handicap: int
+    hole12_handicap: int
+    hole13_handicap: int
+    hole14_handicap: int
+    hole15_handicap: int
+    hole16_handicap: int
+    hole17_handicap: int
     hole18_handicap: int
 
 class CourseCreate(CourseRequest):
-    tees: Optional[List[dict]] = Field(None, description="List of tee details, if available")
+    tees: Optional[List[dict]] = Field(None, description='List of tee details, if available')
 
 class CourseRequestPatch(BaseModel):
     name: str = None
-    address: str = None 
-    city: str = None 
+    address: str = None
+    city: str = None
     state: str = None
     zip: int = None
-    website: str = None 
+    website: str = None
     par: int = None
     hole1_par: int = None
     hole2_par: int = None
@@ -182,11 +186,11 @@ class CourseRequestPatch(BaseModel):
 class CourseResponse(BaseModel):
     id: int
     name: str = None
-    address: str = None 
-    city: str = None 
+    address: str = None
+    city: str = None
     state: str = None
     zip: int = None
-    website: str = None 
+    website: str = None
     par: int = None
     hole1_par: int = None
     hole2_par: int = None
@@ -229,7 +233,7 @@ class TeeBox(Base):
     __tablename__ = 'tee_boxes'
     id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
-    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
     rating = Column(Float)
     slope = Column(Integer)
     yardage = Column(Integer)
@@ -253,8 +257,8 @@ class TeeBox(Base):
     hole17_yards = Column(Integer)
     hole18_yards = Column(Integer)
     created_on = Column(DateTime, default=datetime.datetime.utcnow)
-    course = relationship("Course", back_populates="tees")
-    rounds = relationship("Round", back_populates="tees")
+    course = relationship('Course', back_populates='tees')
+    rounds = relationship('Round', back_populates='tees')
 
 class TeeBoxRequest(BaseModel):
     name: str
@@ -312,43 +316,88 @@ class TeeBoxResponse(BaseModel):
     hole17_yards: int = None
     hole18_yards: int = None
 
+class TeeBoxPatchRequest(BaseModel):
+    name: str = None
+    course_id: int = None
+    rating: float = None
+    slope: int = None
+    yardage: int = None
+    hex: str = None
+    hole1_yards: int = None
+    hole2_yards: int = None
+    hole3_yards: int = None
+    hole4_yards: int = None
+    hole5_yards: int = None
+    hole6_yards: int = None
+    hole7_yards: int = None
+    hole8_yards: int = None
+    hole9_yards: int = None
+    hole10_yards: int = None
+    hole11_yards: int = None
+    hole12_yards: int = None
+    hole13_yards: int = None
+    hole14_yards: int = None
+    hole15_yards: int = None
+    hole16_yards: int = None
+    hole17_yards: int = None
+    hole18_yards: int = None
+
+
+class StatusEnum(str, Enum):
+    NEW = 'new'
+    INPROGRESS = 'in_progress'
+    DONE = 'done'
+
+
+class HolesEnum(int, Enum):
+    HALF = 9
+    FULL = 18
+
+
 
 class Round(Base):
     __tablename__ = 'rounds'
     id = Column(Integer, primary_key=True)
-    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
-    tee_box_id = Column(Integer, ForeignKey("tee_boxes.id"), nullable=False)
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    tee_box_id = Column(Integer, ForeignKey('tee_boxes.id'), nullable=False)
+    player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     total_score = Column(Integer,  nullable=True)
     holes = Column(Integer,  nullable=True)
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     created_on = Column(DateTime, default=datetime.datetime.utcnow)
-    course = relationship("Course", back_populates="rounds")
-    tees = relationship("TeeBox", back_populates="rounds")
-    player = relationship("Player", back_populates="rounds")
-    round_holes = relationship("RoundHole", back_populates="rounds", cascade="all, delete")
+    course = relationship('Course', back_populates='rounds')
+    tees = relationship('TeeBox', back_populates='rounds')
+    player = relationship('Player', back_populates='rounds')
+    round_holes = relationship('RoundHole', back_populates='rounds', cascade='all, delete')
 
 class RoundRequest(BaseModel):
     course_id: int
     tee_box_id: int
     player_id: int
-    total_score: int 
-    holes: int 
+    total_score: int
+    holes: HolesEnum
+
+class RoundPatchRequest(BaseModel):
+    course_id: int = None
+    tee_box_id: int = None
+    player_id: int = None
+    total_score: int = None
+    holes: HolesEnum = None
 
 class RoundResponse(BaseModel):
-    id: int 
+    id: int
     course_id: int
     tee_box_id: int
     player_id: int
-    total_score: int 
+    total_score: int
     holes: int
 
 
 class RoundHole(Base):
     __tablename__ = 'round_holes'
     id = Column(Integer, primary_key=True)
-    round_id = Column(Integer, ForeignKey("rounds.id"), nullable=False)
+    round_id = Column(Integer, ForeignKey('rounds.id'), nullable=False)
     score = Column(Integer)
     hole_number = Column(Integer)
     gir = Column(Boolean, nullable=True)
@@ -358,7 +407,7 @@ class RoundHole(Base):
     sand = Column(Boolean, nullable=True)
     water = Column(Boolean, nullable=True)
     created_on = Column(DateTime, default=datetime.datetime.utcnow)
-    rounds = relationship("Round", back_populates="round_holes")
+    rounds = relationship('Round', back_populates='round_holes')
 
 def check_unique_name(session, round_id, hole_number):
     item = (
@@ -367,47 +416,54 @@ def check_unique_name(session, round_id, hole_number):
         .first()
         )
     return item
-   
+
+class FairwayEnum(str, Enum):
+    LEFT = '<'
+    ON = 'o'
+    RIGHT = '>'
+    SHORT = 'v'
+    LONG = '^'
+
 
 class RoundHoleRequest(BaseModel):
     round_id: int = None
     hole_number: int = None
     score: int = None
     gir: bool = None
-    fairway: str = None
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    fairway: FairwayEnum = None
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
 
-    @validator("hole_number")
+    @validator('hole_number')
     def validate_unique_number(cls, value, values, **kwargs):
-        round_id = values.get("round_id")
+        round_id = values.get('round_id')
         if round_id and value:
             session = SessionLocal()
             item = check_unique_name(session, round_id, value)
             session.close()
             if item:
-                    raise ValueError("hole_number must be unique within the round")
+                raise ValueError('hole_number must be unique within the round')
         return value
 
 class RoundHolePatchRequest(BaseModel):
     score: int = None
-    gir: bool = None 
-    fairway: str = None 
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    gir: bool = None
+    fairway: FairwayEnum = None
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
 
 class RoundHoleResponse(BaseModel):
-    id: int 
+    id: int
     round_id: int
     hole_number: int
     score: int
     gir: bool = None
     fairway: str = None
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
