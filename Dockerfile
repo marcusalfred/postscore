@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip install uvicorn
 
 COPY app/ .
 EXPOSE 5555
