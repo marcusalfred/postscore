@@ -95,7 +95,7 @@ async def get_course(course_id: int):
     db.close()
     return [course_data]
 
-@courserouter.post("/courses", tags=["Courses"], response_model=CourseResponse, dependencies=[Depends(verify_api_key)])
+@courserouter.post("/courses", tags=["Courses"], response_model=CourseResponse)
 async def add_course(data: CourseRequest):
     db = SessionLocal()
     new_record = Course(**data.dict())
@@ -148,7 +148,7 @@ async def add_course(data: CourseRequest):
         "hole17_handicap": new_record.hole17_handicap,
         "hole18_handicap": new_record.hole18_handicap}
 
-@courserouter.patch("/courses/{course_id}", tags=["Courses"], response_model=CourseResponse, dependencies=[Depends(verify_api_key)])
+@courserouter.patch("/courses/{course_id}", tags=["Courses"], response_model=CourseResponse)
 async def update_course(course_id: int, data: CourseRequestPatch):
     db = SessionLocal()
     record = db.query(Course).filter(Course.id == course_id).first()
@@ -209,7 +209,7 @@ async def update_course(course_id: int, data: CourseRequestPatch):
 
 
 
-@courserouter.post("/teeboxes", tags=["Courses"], response_model=TeeBoxResponse, dependencies=[Depends(verify_api_key)])
+@courserouter.post("/teeboxes", tags=["Courses"], response_model=TeeBoxResponse)
 async def add_teebox(teebox: TeeBoxRequest):
     db = SessionLocal()
     new_record = TeeBox(**teebox.dict())
@@ -246,7 +246,7 @@ async def add_teebox(teebox: TeeBoxRequest):
         "hole18_yards": new_record.hole18_yards
     }
 
-@courserouter.post("/courses/v0_1", tags=["Courses"], dependencies=[Depends(verify_api_key)])
+@courserouter.post("/courses/v0_1", tags=["Courses"])
 async def create_course_and_tees(course_data: CourseCreate):
     db = SessionLocal()
 
@@ -268,7 +268,7 @@ async def create_course_and_tees(course_data: CourseCreate):
 
     return {"message": "Course and Tees created successfully"}
 
-@courserouter.delete("/courses/{course_id}", tags=["Courses"], dependencies=[Depends(verify_api_key)])
+@courserouter.delete("/courses/{course_id}", tags=["Courses"])
 async def delete_course(course_id: int):
     db = SessionLocal()
     course = db.query(Course).filter(Course.id == course_id).first()
