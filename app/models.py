@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from db import SessionLocal
+from .db import SessionLocal
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
 import datetime
@@ -35,9 +35,9 @@ class PlayerResponse(BaseModel):
     name: str
     email: str
 
-class Course(Base): 
-    __tablename__ = "courses"  
-    id = Column(Integer, primary_key=True) 
+class Course(Base):
+    __tablename__ = "courses"
+    id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
     address = Column(String(50))
     city = Column(String(50))
@@ -82,53 +82,53 @@ class Course(Base):
     hole17_handicap = Column(Integer)
     hole18_handicap = Column(Integer)
     created_on = Column(DateTime, default=datetime.datetime.utcnow)
-    tees = relationship("TeeBox", back_populates="course", cascade="all, delete") 
+    tees = relationship("TeeBox", back_populates="course", cascade="all, delete")
     rounds = relationship("Round", back_populates="course")
 
 
 class CourseRequest(BaseModel):
     name: str
     address: str
-    city: str  
-    state: str 
-    zip: int 
-    website: str  
-    par: int 
-    hole1_par: int 
-    hole2_par: int 
-    hole3_par: int 
-    hole4_par: int 
-    hole5_par: int 
-    hole6_par: int 
-    hole7_par: int 
-    hole8_par: int 
-    hole9_par: int 
-    hole10_par: int 
-    hole11_par: int 
-    hole12_par: int 
-    hole13_par: int 
-    hole14_par: int 
-    hole15_par: int 
-    hole16_par: int 
-    hole17_par: int 
-    hole18_par: int 
-    hole1_handicap: int 
-    hole2_handicap: int 
-    hole3_handicap: int 
-    hole4_handicap: int 
-    hole5_handicap: int 
-    hole6_handicap: int 
-    hole7_handicap: int 
-    hole8_handicap: int 
-    hole9_handicap: int 
-    hole10_handicap: int 
-    hole11_handicap: int 
-    hole12_handicap: int 
-    hole13_handicap: int 
-    hole14_handicap: int 
-    hole15_handicap: int 
-    hole16_handicap: int 
-    hole17_handicap: int 
+    city: str
+    state: str
+    zip: int
+    website: str
+    par: int
+    hole1_par: int
+    hole2_par: int
+    hole3_par: int
+    hole4_par: int
+    hole5_par: int
+    hole6_par: int
+    hole7_par: int
+    hole8_par: int
+    hole9_par: int
+    hole10_par: int
+    hole11_par: int
+    hole12_par: int
+    hole13_par: int
+    hole14_par: int
+    hole15_par: int
+    hole16_par: int
+    hole17_par: int
+    hole18_par: int
+    hole1_handicap: int
+    hole2_handicap: int
+    hole3_handicap: int
+    hole4_handicap: int
+    hole5_handicap: int
+    hole6_handicap: int
+    hole7_handicap: int
+    hole8_handicap: int
+    hole9_handicap: int
+    hole10_handicap: int
+    hole11_handicap: int
+    hole12_handicap: int
+    hole13_handicap: int
+    hole14_handicap: int
+    hole15_handicap: int
+    hole16_handicap: int
+    hole17_handicap: int
     hole18_handicap: int
 
 class CourseCreate(CourseRequest):
@@ -136,11 +136,11 @@ class CourseCreate(CourseRequest):
 
 class CourseRequestPatch(BaseModel):
     name: str = None
-    address: str = None 
-    city: str = None 
+    address: str = None
+    city: str = None
     state: str = None
     zip: int = None
-    website: str = None 
+    website: str = None
     par: int = None
     hole1_par: int = None
     hole2_par: int = None
@@ -182,11 +182,11 @@ class CourseRequestPatch(BaseModel):
 class CourseResponse(BaseModel):
     id: int
     name: str = None
-    address: str = None 
-    city: str = None 
+    address: str = None
+    city: str = None
     state: str = None
     zip: int = None
-    website: str = None 
+    website: str = None
     par: int = None
     hole1_par: int = None
     hole2_par: int = None
@@ -333,15 +333,15 @@ class RoundRequest(BaseModel):
     course_id: int
     tee_box_id: int
     player_id: int
-    total_score: int 
-    holes: int 
+    total_score: int
+    holes: int
 
 class RoundResponse(BaseModel):
-    id: int 
+    id: int
     course_id: int
     tee_box_id: int
     player_id: int
-    total_score: int 
+    total_score: int
     holes: int
 
 
@@ -367,7 +367,7 @@ def check_unique_name(session, round_id, hole_number):
         .first()
         )
     return item
-   
+
 
 class RoundHoleRequest(BaseModel):
     round_id: int = None
@@ -375,10 +375,10 @@ class RoundHoleRequest(BaseModel):
     score: int = None
     gir: bool = None
     fairway: str = None
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
 
     @validator("hole_number")
     def validate_unique_number(cls, value, values, **kwargs):
@@ -393,21 +393,21 @@ class RoundHoleRequest(BaseModel):
 
 class RoundHolePatchRequest(BaseModel):
     score: int = None
-    gir: bool = None 
-    fairway: str = None 
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    gir: bool = None
+    fairway: str = None
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
 
 class RoundHoleResponse(BaseModel):
-    id: int 
+    id: int
     round_id: int
     hole_number: int
     score: int
     gir: bool = None
     fairway: str = None
-    putts: int = None 
-    penalties: int = None 
-    sand: bool = None 
-    water: bool = None 
+    putts: int = None
+    penalties: int = None
+    sand: bool = None
+    water: bool = None
