@@ -4,7 +4,7 @@ from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy import func
 from typing import List
 from ..models import Course, CourseRequest, TeeBoxCreate, CourseCreate, CourseRequestPatch, CourseResponse, TeeBox, TeeBoxResponse, TeeBoxRequest
-from ..db import SessionLocal
+from ..database import SessionLocal
 from pydantic import BaseModel
 import datetime
 

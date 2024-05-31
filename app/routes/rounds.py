@@ -3,7 +3,7 @@ from fastapi.security.api_key import APIKeyHeader
 #from utils.auth import verify_api_key
 from sqlalchemy import func
 from ..models import Round, RoundHole, RoundRequest, RoundResponse, RoundHoleRequest, RoundHoleResponse, RoundHolePatchRequest
-from ..db import SessionLocal
+from ..database import SessionLocal
 from pydantic import BaseModel
 import datetime
 
