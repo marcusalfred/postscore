@@ -8,8 +8,8 @@ from pydantic import BaseModel
 import datetime
 
 api_key_header = APIKeyHeader(name="Authorization")
-roundrouter = APIRouter(dependencies=[Depends(verify_api_key)])
-#roundrouter = APIRouter()
+#roundrouter = APIRouter(dependencies=[Depends(verify_api_key)])
+roundrouter = APIRouter()
 
 @roundrouter.post("/rounds", tags=["Rounds"], response_model=RoundResponse)
 async def add_round(data: RoundRequest):

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 
 api_key_header = APIKeyHeader(name="Authorization")
-playerrouter = APIRouter(dependencies=[Depends(verify_api_key)])
+playerrouter = APIRouter()
 #Playerrouter = APIRouter()
 
 @playerrouter.get("/players", tags=["Players"])
