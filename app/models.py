@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from .db import SessionLocal
+from .database import SessionLocal
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
 import datetime
