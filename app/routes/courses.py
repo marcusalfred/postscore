@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, APIRouter, Security
 from fastapi.security.api_key import APIKeyHeader
-from utils.auth import verify_api_key
+#from .utils.auth import verify_api_key
 from sqlalchemy import func
 from typing import List
 from models import Course, CourseRequest, TeeBoxCreate, CourseCreate, CourseRequestPatch, CourseResponse, TeeBox, TeeBoxResponse, TeeBoxRequest

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, APIRouter, Security
 from fastapi.security.api_key import APIKeyHeader
-from utils.auth import verify_api_key
+#from utils.auth import verify_api_key
 from sqlalchemy import func
 from models import Player, PlayerRequest, PlayerRequestPatch, PlayerResponse
 from db import SessionLocal
@@ -22,7 +22,7 @@ async def get_all_players(
 
     if name:
         query = db.query(Player).filter(func.lower(Player.name).ilike(f"%{name.lower()}%"))
-    if email: 
+    if email:
         query = db.query(Player).filter(func.lower(Player.email).ilike(f"%{email.lower()}%"))
     records = db.query(Player).all()
     db.close()
@@ -75,14 +75,14 @@ async def update_player(player_id: int, data: PlayerRequestPatch):
 async def delete_player(player_id: int):
         db = SessionLocal()
         record = db.query(Player).filter(Player.id == player_id).first()
-    
+
         if record is None:
             raise HTTPException(status_code=404, detail="Record not found")
-    
+
         db.delete(record)
         db.commit()
         db.close()
-        
+
         return {"message": "Record deleted successfully"}
 
 

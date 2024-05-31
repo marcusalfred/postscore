@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, APIRouter, Security
 from fastapi.security.api_key import APIKeyHeader
-from utils.auth import verify_api_key
+#from utils.auth import verify_api_key
 from sqlalchemy import func
 from models import Round, RoundHole, RoundRequest, RoundResponse, RoundHoleRequest, RoundHoleResponse, RoundHolePatchRequest
 from db import SessionLocal
@@ -16,8 +16,8 @@ async def add_round(data: RoundRequest):
     db = SessionLocal()
     new_record = Round(
         course_id=data.course_id,
-        tee_box_id=data.tee_box_id, 
-        player_id=data.player_id, 
+        tee_box_id=data.tee_box_id,
+        player_id=data.player_id,
         total_score=data.total_score,
         holes=data.holes)
     db.add(new_record)
@@ -26,10 +26,10 @@ async def add_round(data: RoundRequest):
     db.close()
     return {
         "id": new_record.id,
-        "course_id": new_record.course_id, 
-        "tee_box_id": new_record.tee_box_id, 
-        "player_id": new_record.player_id, 
-        "total_score": new_record.total_score, 
+        "course_id": new_record.course_id,
+        "tee_box_id": new_record.tee_box_id,
+        "player_id": new_record.player_id,
+        "total_score": new_record.total_score,
         "holes": new_record.holes
         }
 
@@ -38,8 +38,8 @@ async def add_roundhole(round_id: int, hole_number: int, data: RoundHoleRequest)
     db = SessionLocal()
     new_record = RoundHole(
         round_id=data.round_id,
-        score=data.score, 
-        hole_number=data.hole_number, 
+        score=data.score,
+        hole_number=data.hole_number,
         gir=data.gir,
         fairway=data.fairway,
         putts=data.putts,
@@ -52,10 +52,10 @@ async def add_roundhole(round_id: int, hole_number: int, data: RoundHoleRequest)
     db.close()
     return {
         "id": new_record.id,
-        "round_id": new_record.round_id, 
-        "score": new_record.score, 
-        "hole_number": new_record.hole_number, 
-        "gir": new_record.gir, 
+        "round_id": new_record.round_id,
+        "score": new_record.score,
+        "hole_number": new_record.hole_number,
+        "gir": new_record.gir,
         "fairway": new_record.fairway,
         "putts": new_record.putts,
         "penalties": new_record.penalties,
@@ -65,7 +65,7 @@ async def add_roundhole(round_id: int, hole_number: int, data: RoundHoleRequest)
 @roundrouter.get('/rounds', tags=["Rounds"])
 async def get_all_rounds(player_id: int = None):
     db = SessionLocal()
-    
+
     query = db.query(Round)
     if player_id:
         query = query.filter(Round.player_id == player_id)
@@ -92,17 +92,17 @@ async def get_round(round_id: int):
     db = SessionLocal()
     # Fetch the course along with its tees
     round = db.query(Round).filter(Round.id == round_id).first()
-    
+
     if round:
         # Access associated tees through the relationship defined in the Course model
         round_holes = [{"hole": round_hole.hole_number, "score": round_hole.score, "putts": round_hole.putts} for round_hole in round.round_holes]
-        
+
         db.close()
 
         score2 = sum(obj["score"] for obj in round_holes)
-        
+
         return {"round": {"id": round.id, "score": round.total_score, "hole_count": len(round_holes), "round_holes": round_holes, "score2": score2}}
-    
+
     db.close()
     return {"message": "Round not found"}
 
@@ -111,14 +111,14 @@ async def get_round(round_id: int):
 async def delete_round(round_id: int):
         db = SessionLocal()
         record = db.query(Round).filter(Round.id == round_id).first()
-    
+
         if record is None:
             raise HTTPException(status_code=404, detail="Round not found")
-    
+
         db.delete(record)
         db.commit()
         db.close()
-        
+
         return {"message": "Round deleted successfully"}
 
 
@@ -150,6 +150,6 @@ async def update_roundhole(round_id: int, hole_number: int, data: RoundHolePatch
         db.refresh(record)
         return record
 
-    finally: 
+    finally:
         db.close()
-    
+
