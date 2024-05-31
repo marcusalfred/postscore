@@ -88,7 +88,7 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+#app.mount("/static", StaticFiles(directory="static"), name="static")
 
 html = f"""
 <!DOCTYPE html>
@@ -122,7 +122,7 @@ async def root():
 #    return HTMLResponse(html)
 
 
-@app.get('/ping')
+@app.get('/')
 async def hello(token: Annotated[str, Depends(oauth2_scheme)]):
     return {'res': 'pong', 'version': __version__, "time": time(), "token": token}
 
