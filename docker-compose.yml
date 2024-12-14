@@ -9,10 +9,13 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT}:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - postscore
+
   app:
     container_name: postscore_api
     build:
@@ -23,9 +26,30 @@ services:
     depends_on:
       - postgres
     environment:
-      DB_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}
+      DB_URL: ${DB_URL}
     volumes:
       - ./app:/app
+    networks:
+      - postscore
+
+  pgweb:
+    container_name: pgweb  # optional
+    restart: always  # optional
+    image: sosedoff/pgweb
+    ports:
+      - "8081:8081"
+    links:
+      - postgres:postgres  # my database container is called postgres, not db
+    environment:
+      - PGWEB_DATABASE_URL=${DB_URL}
+    depends_on:
+      - postgres  # my database container is called postgres, not db
+    networks:
+      - postscore
 
 volumes:
   pgdata:
+
+networks:
+  postscore:
+    driver: bridge
