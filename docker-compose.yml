@@ -8,11 +8,15 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      GOLF_API_PASSWORD: golfapi123  # password for the golf_api role
     ports:
       - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/02-init.sql
+      - ./setup-golf-api.sh:/docker-entrypoint-initdb.d/01-setup-golf-api.sh
+    command: ["postgres", "-c", "log_statement=all"]
   app:
     container_name: postscore_api
     build:
@@ -23,7 +27,18 @@ services:
     depends_on:
       - postgres
     environment:
-      DB_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}
+      DB_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: 5432
+      # JWT Settings
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      # App Settings
+      SETUP_SECRET: ${SETUP_SECRET}
     volumes:
       - ./app:/app
 

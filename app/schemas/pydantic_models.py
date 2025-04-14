@@ -1,33 +1,144 @@
 from enum import Enum
-from typing import List, Optional
-from pydantic import BaseModel, Field, validator, UUID4, typing
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field, validator, typing, EmailStr
 from datetime import date, datetime, time, timedelta
+import ulid
+
+
+class PlayerSignup(BaseModel):
+    """Model for player signup/registration"""
+    email: EmailStr = Field(..., description="Email address (must be unique)")
+    password: str = Field(..., min_length=8, description="Password (min 8 characters)")
+    name: str = Field(..., min_length=2, max_length=100, description="Player's full name")
+    zip: str = Field(..., min_length=5, max_length=10, description="ZIP/Postal code")
+    handicap: Optional[float] = Field(None, ge=0.0, le=54.0, description="Golf handicap (0-54)")
+    ghin_number: Optional[str] = Field(None, description="GHIN number")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "john@example.com",
+                "password": "securepassword",
+                "name": "John Doe",
+                "zip": "12345",
+                "handicap": 15.2,
+                "ghin_number": "1234567"
+            }
+        }
+
+
+class UserSignupRequest(BaseModel):
+    """
+    Model for user signup/registration in the v1 API
+    This model is used for the /api/v1/auth/signup endpoint
+    """
+    email: EmailStr = Field(..., description="Email address (must be unique)")
+    password: str = Field(..., min_length=8, description="Password (min 8 characters)")
+    name: str = Field(..., min_length=2, max_length=100, description="Player's full name")
+    zip: str = Field(..., min_length=5, max_length=10, description="ZIP/Postal code")
+    handicap: Optional[float] = Field(None, ge=0.0, le=54.0, description="Golf handicap (0-54)")
+    ghin_number: Optional[str] = Field(None, description="GHIN number")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "john@example.com",
+                "password": "securepassword",
+                "name": "John Doe",
+                "zip": "12345",
+                "handicap": 15.2,
+                "ghin_number": "1234567"
+            }
+        }
 
 
 class PlayerRequest(BaseModel):
-    name: str
-    email: str
-    zip: int
-    handicap: float
-    ghin_number: int
+    """Request model for creating or updating a player."""
+    name: str = Field(..., min_length=2, max_length=100, description="Player's full name")
+    email: EmailStr = Field(..., description="Email address (must be unique)")
+    zip: str = Field(..., min_length=5, max_length=10, description="ZIP/Postal code")
+    handicap: Optional[float] = Field(None, ge=0.0, le=54.0, description="Golf handicap (0-54)")
+    ghin_number: Optional[str] = Field(None, description="GHIN number")
+    password: Optional[str] = Field(None, min_length=8, description="Password (min 8 characters)")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "John Doe",
+                "email": "john@example.com",
+                "zip": "12345",
+                "handicap": 15.2,
+                "ghin_number": "1234567"
+            }
+        }
 
 
 class PlayerRequestPatch(BaseModel):
-    name: Optional[str]
-    email: Optional[str]
-    zip: Optional[int]
-    handicap: Optional[float]
-    ghin_number: Optional[int]
+    """Request model for partially updating a player."""
+    name: Optional[str] = Field(None, min_length=2, max_length=100, description="Player's full name")
+    email: Optional[EmailStr] = Field(None, description="Email address (must be unique)")
+    zip: Optional[str] = Field(None, min_length=5, max_length=10, description="ZIP/Postal code")
+    handicap: Optional[float] = Field(None, ge=0.0, le=54.0, description="Golf handicap (0-54)")
+    ghin_number: Optional[str] = Field(None, description="GHIN number")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "handicap": 14.5,
+                "zip": "90210"
+            }
+        }
+
 
 class PlayerResponse(BaseModel):
-    id: UUID4
-    name: str
-    email: str
-    zip: int
-    handicap: float
-    ghin_number: int
-    created_at: datetime = Field(exclude=True)  # Exclude created_at field
-    updated_at: datetime = Field(exclude=True)  # Exclude updated_at field
+    """Response model for player data."""
+    id: str = Field(..., description="Player ID (ULID)")
+    name: str = Field(..., description="Player's full name")
+    email: str = Field(..., description="Email address")
+    zip: str = Field(..., description="ZIP/Postal code")
+    handicap: Optional[float] = Field(None, description="Golf handicap")
+    ghin_number: Optional[str] = Field(None, description="GHIN number")
+    is_active: Optional[bool] = Field(default=True, description="Whether the player account is active")
+    created_on: Optional[datetime] = Field(None, description="When the player was created")
+    
+    class Config:
+        from_attributes = True
+        schema_extra = {
+            "example": {
+                "id": "01H0JMVKHWBH8QRE098XVGC9X4",
+                "name": "John Doe",
+                "email": "john@example.com",
+                "zip": "12345",
+                "handicap": 15.2,
+                "ghin_number": "1234567",
+                "is_active": True,
+                "created_on": "2023-10-20T12:34:56.789Z"
+            }
+        }
+
+
+class SignupResponse(BaseModel):
+    """Response model for successful signup"""
+    player: PlayerResponse
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field("bearer", description="Token type")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "player": {
+                    "id": "01H0JMVKHWBH8QRE098XVGC9X4",
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "zip": "12345",
+                    "handicap": 15.2,
+                    "ghin_number": "1234567",
+                    "is_active": True
+                },
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer"
+            }
+        }
 
 class TeeBoxHoleBase(BaseModel):
     number: int
@@ -35,8 +146,15 @@ class TeeBoxHoleBase(BaseModel):
     yards: int
     handicap: int
 
+class TeeBoxHoleResponse(TeeBoxHoleBase):
+    """Response model for tee box hole data with ID."""
+    id: str
+    
+    class Config:
+        from_attributes = True
+
 class TeeBoxBase(BaseModel):
-    tee_id: UUID4
+    tee_id: str
     tee: str
     rating: float
     slope: int
@@ -44,42 +162,69 @@ class TeeBoxBase(BaseModel):
 
 
 class CourseRequest(BaseModel):
+    """Request model for creating a new course."""
+    name: str = Field(..., min_length=2, max_length=100, description="Name of the golf course")
+    address: str = Field(..., min_length=5, max_length=100, description="Street address of the course")
+    city: str = Field(..., min_length=2, max_length=50, description="City where the course is located")
+    state: str = Field(..., min_length=2, max_length=2, description="Two-letter state code")
+    zip: str = Field(..., min_length=5, max_length=10, description="ZIP/Postal code")
+    website: str = Field(..., min_length=5, max_length=100, description="Course website URL")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Augusta National Golf Club",
+                "address": "2604 Washington Rd",
+                "city": "Augusta",
+                "state": "GA",
+                "zip": "30904",
+                "website": "https://www.augusta.com"
+            }
+        }
+
+class CourseCreate(CourseRequest):
+    """Model used for creating a course in the database."""
+    pass
+
+class CourseRequestPatch(BaseModel):
+    """Request model for updating an existing course."""
+    name: Optional[str] = Field(None, min_length=2, max_length=100, description="Name of the golf course")
+    address: Optional[str] = Field(None, min_length=5, max_length=100, description="Street address of the course")
+    city: Optional[str] = Field(None, min_length=2, max_length=50, description="City where the course is located")
+    state: Optional[str] = Field(None, min_length=2, max_length=2, description="Two-letter state code")
+    zip: Optional[str] = Field(None, min_length=5, max_length=10, description="ZIP/Postal code")
+    website: Optional[str] = Field(None, min_length=5, max_length=100, description="Course website URL")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Augusta National Golf Club",
+                "website": "https://www.augusta.com"
+            }
+        }
+
+class CourseResponse(BaseModel):
+    """Response model for course data."""
+    id: str
     name: str
     address: str
     city: str
     state: str
-    zip: int
+    zip: str
     website: str
-
-class CourseCreate(CourseRequest):
-    tees: Optional[List[dict]] = Field(None, description='List of tee details, if available')
-
-class CourseRequestPatch(BaseModel):
-    name: Optional[str]
-    address: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    zip: Optional[int]
-    website: Optional[str]
-
-class CourseRequest(BaseModel):
-    name: Optional[str]
-    address: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    zip: Optional[str]
-    website: Optional[str]
-
-class CourseResponse(BaseModel):
-    id: UUID4
-    name: str
-    location: str
-    website: str
-    tees: List[TeeBoxBase]
+    tees: List[TeeBoxBase] = []
+    
+    @property
+    def location(self) -> str:
+        """Returns a formatted location string."""
+        return f"{self.city}, {self.state}"
+    
+    class Config:
+        from_attributes = True
 
 class TeeBoxRequest(BaseModel):
     name: str
-    course_id: UUID4
+    course_id: str
     rating: Optional[float]
     slope: Optional[int]
     yardage: Optional[int]
@@ -89,7 +234,7 @@ class TeeBoxCreate(TeeBoxRequest):
     pass
 
 class TeeBoxResponse(BaseModel):
-    id: UUID4
+    id: str
     name: str
     course_id: int
     rating: Optional[float]
@@ -99,44 +244,91 @@ class TeeBoxResponse(BaseModel):
 
 class TeeBoxPatchRequest(BaseModel):
     name: Optional[str]
-    course_id: Optional[UUID4]
+    course_id: Optional[str]
     rating: Optional[float]
     slope: Optional[int]
     yardage: Optional[int]
     hex: Optional[str]
 
 class StatusEnum(str, Enum):
+    """Status of a round."""
     NEW = 'new'
     INPROGRESS = 'in_progress'
     DONE = 'done'
 
 class HolesEnum(int, Enum):
+    """Number of holes in a round."""
     HALF = 9
     FULL = 18
 
 class RoundRequest(BaseModel):
-    course_id: UUID4
-    tee_box_id: UUID4
-    player_id: UUID4
-    total_score: int
-    holes: HolesEnum
+    """Request model for creating a new round."""
+    course_id: str = Field(..., description="ID of the course")
+    tee_box_id: str = Field(..., description="ID of the tee box")
+    player_id: str = Field(..., description="ID of the player")
+    total_score: Optional[int] = Field(None, ge=18, description="Total score for the round")
+    holes: HolesEnum = Field(..., description="Number of holes (9 or 18)")
+    start_time: Optional[datetime] = Field(None, description="When the round started")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "course_id": "01H0JMVKHWBH8QRE098XVGC9X4",
+                "tee_box_id": "01H0JMVKHWBH8QRE098XVGC9X5",
+                "player_id": "01H0JMVKHWBH8QRE098XVGC9X6",
+                "holes": 18,
+                "start_time": "2023-10-20T08:30:00Z"
+            }
+        }
 
 class RoundPatchRequest(BaseModel):
-    course_id: Optional[UUID4]
-    tee_box_id: Optional[UUID4]
-    player_id: Optional[UUID4]
-    total_score: Optional[int]
-    holes: HolesEnum = None
+    """Request model for updating an existing round."""
+    course_id: Optional[str] = Field(None, description="ID of the course")
+    tee_box_id: Optional[str] = Field(None, description="ID of the tee box")
+    player_id: Optional[str] = Field(None, description="ID of the player")
+    total_score: Optional[int] = Field(None, ge=18, description="Total score for the round")
+    holes: Optional[HolesEnum] = Field(None, description="Number of holes (9 or 18)")
+    start_time: Optional[datetime] = Field(None, description="When the round started")
+    end_time: Optional[datetime] = Field(None, description="When the round ended")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "total_score": 72,
+                "end_time": "2023-10-20T12:30:00Z"
+            }
+        }
 
 class RoundResponse(BaseModel):
-    id: UUID4
-    course_id: UUID4
-    tee_box_id: UUID4
-    player_id: UUID4
-    total_score: int
-    holes: int
+    """Response model for round data."""
+    id: str = Field(..., description="Round ID (ULID)")
+    course_id: str = Field(..., description="ID of the course")
+    tee_box_id: str = Field(..., description="ID of the tee box")
+    player_id: str = Field(..., description="ID of the player")
+    total_score: Optional[int] = Field(None, description="Total score for the round")
+    holes: int = Field(..., description="Number of holes (9 or 18)")
+    start_time: Optional[datetime] = Field(None, description="When the round started")
+    end_time: Optional[datetime] = Field(None, description="When the round ended")
+    created_on: Optional[datetime] = Field(None, description="When the round was created")
+    
+    class Config:
+        from_attributes = True
+        schema_extra = {
+            "example": {
+                "id": "01H0JMVKHWBH8QRE098XVGC9X7",
+                "course_id": "01H0JMVKHWBH8QRE098XVGC9X4",
+                "tee_box_id": "01H0JMVKHWBH8QRE098XVGC9X5",
+                "player_id": "01H0JMVKHWBH8QRE098XVGC9X6",
+                "total_score": 72,
+                "holes": 18,
+                "start_time": "2023-10-20T08:30:00Z",
+                "end_time": "2023-10-20T12:30:00Z",
+                "created_on": "2023-10-20T08:15:30Z"
+            }
+        }
 
 class FairwayEnum(str, Enum):
+    """Fairway hit status."""
     LEFT = '<'
     ON = 'o'
     RIGHT = '>'
@@ -144,36 +336,111 @@ class FairwayEnum(str, Enum):
     LONG = '^'
 
 class RoundHoleRequest(BaseModel):
-    round_id: Optional[UUID4]
-    hole_number: Optional[int]
-    score: Optional[int]
-    gir: Optional[bool]
-    fairway: FairwayEnum = None
-    putts: Optional[int]
-    #penalties: Optional[int]
-    #sand: Optional[bool]
-    #water: Optional[bool]
+    """Request model for creating a round hole."""
+    round_id: str = Field(..., description="ID of the round")
+    tee_box_hole_id: str = Field(..., description="ID of the tee box hole")
+    score: int = Field(..., ge=1, description="Score for the hole")
+    gir: Optional[bool] = Field(None, description="Green in regulation")
+    fairway: Optional[FairwayEnum] = Field(None, description="Fairway hit status")
+    putts: Optional[int] = Field(None, ge=0, description="Number of putts")
+    penalties: Optional[int] = Field(None, ge=0, description="Number of penalty strokes")
+    sand: Optional[bool] = Field(None, description="Hit from sand")
+    water: Optional[bool] = Field(None, description="Hit from water")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "round_id": "01H0JMVKHWBH8QRE098XVGC9X7",
+                "tee_box_hole_id": "01H0JMVKHWBH8QRE098XVGC9X8",
+                "score": 4,
+                "gir": True,
+                "fairway": "o",
+                "putts": 2
+            }
+        }
 
 class RoundHolePatchRequest(BaseModel):
-    score: Optional[int]
-    gir: Optional[bool]
-    fairway: FairwayEnum = None
-    putts: Optional[int]
-    penalties: Optional[int]
-    sand: Optional[bool]
-    water: Optional[bool]
+    """Request model for updating a round hole."""
+    score: Optional[int] = Field(None, ge=1, description="Score for the hole")
+    gir: Optional[bool] = Field(None, description="Green in regulation")
+    fairway: Optional[FairwayEnum] = Field(None, description="Fairway hit status")
+    putts: Optional[int] = Field(None, ge=0, description="Number of putts")
+    penalties: Optional[int] = Field(None, ge=0, description="Number of penalty strokes")
+    sand: Optional[bool] = Field(None, description="Hit from sand")
+    water: Optional[bool] = Field(None, description="Hit from water")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "score": 5,
+                "putts": 3
+            }
+        }
 
 class RoundHoleResponse(BaseModel):
-    id: UUID4
-    round_id: UUID4
-    #hole_number: int
-    score: int
-    gir: Optional[bool]
-    fairway: Optional[str]
-    putts: Optional[int]
-    #penalties: Optional[int]
-    #sand: Optional[bool]
-    #water: Optional[bool]
+    """Response model for round hole data."""
+    id: str = Field(..., description="Round hole ID (ULID)")
+    round_id: str = Field(..., description="ID of the round")
+    tee_box_hole_id: str = Field(..., description="ID of the tee box hole")
+    score: int = Field(..., description="Score for the hole")
+    gir: Optional[bool] = Field(None, description="Green in regulation")
+    fairway: Optional[str] = Field(None, description="Fairway hit status")
+    putts: Optional[int] = Field(None, description="Number of putts")
+    penalties: Optional[int] = Field(None, description="Number of penalty strokes")
+    sand: Optional[bool] = Field(None, description="Hit from sand")
+    water: Optional[bool] = Field(None, description="Hit from water")
+    created_on: Optional[datetime] = Field(None, description="When the round hole was created")
+    
+    class Config:
+        from_attributes = True
+        schema_extra = {
+            "example": {
+                "id": "01H0JMVKHWBH8QRE098XVGC9X9",
+                "round_id": "01H0JMVKHWBH8QRE098XVGC9X7",
+                "tee_box_hole_id": "01H0JMVKHWBH8QRE098XVGC9X8",
+                "score": 4,
+                "gir": True,
+                "fairway": "o",
+                "putts": 2,
+                "penalties": 0,
+                "sand": False,
+                "water": False,
+                "created_on": "2023-10-20T08:35:15Z"
+            }
+        }
+
+class RoundHoleDetailResponse(RoundHoleResponse):
+    """Detailed response model for round hole data with context."""
+    hole_number: Optional[int] = Field(None, description="Hole number (1-18)")
+    par: Optional[int] = Field(None, description="Par for the hole")
+    yards: Optional[int] = Field(None, description="Hole yardage")
+    handicap: Optional[int] = Field(None, description="Hole handicap (1-18)")
+    course_id: Optional[str] = Field(None, description="Course ID for the round")
+    player_id: Optional[str] = Field(None, description="Player ID for the round")
+    
+    class Config:
+        from_attributes = True
+        schema_extra = {
+            "example": {
+                "id": "01H0JMVKHWBH8QRE098XVGC9X9",
+                "round_id": "01H0JMVKHWBH8QRE098XVGC9X7",
+                "tee_box_hole_id": "01H0JMVKHWBH8QRE098XVGC9X8",
+                "score": 4,
+                "gir": True,
+                "fairway": "o",
+                "putts": 2,
+                "penalties": 0,
+                "sand": False,
+                "water": False,
+                "created_on": "2023-10-20T08:35:15Z",
+                "hole_number": 12,
+                "par": 3,
+                "yards": 155,
+                "handicap": 18,
+                "course_id": "01H0JMVKHWBH8QRE098XVGC9X4",
+                "player_id": "01H0JMVKHWBH8QRE098XVGC9X6"
+            }
+        }
 
 class TeeBoxHoleTest(BaseModel):
     number: int
@@ -187,6 +454,77 @@ class TeeBoxTest(BaseModel):
     slope: int
     rating: float
     holes: List[TeeBoxHoleTest]
+
+# Authentication models
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenPayload(BaseModel):
+    sub: Optional[str] = None
+    exp: Optional[datetime] = None
+
+class RoundStatsResponse(BaseModel):
+    """Response model for round statistics."""
+    total_score: Optional[int] = None
+    par: Optional[int] = None
+    to_par: Optional[int] = None
+    greens_in_regulation: Optional[int] = None
+    gir_percentage: Optional[float] = None
+    fairways_hit: Optional[int] = None
+    fairways_percentage: Optional[float] = None
+    avg_putts_per_hole: Optional[float] = None
+    total_putts: Optional[int] = None
+    penalties: Optional[int] = None
+    sand_shots: Optional[int] = None
+    water_shots: Optional[int] = None
+    
+    class Config:
+        from_attributes = True
+        schema_extra = {
+            "example": {
+                "total_score": 72,
+                "par": 72,
+                "to_par": 0,
+                "greens_in_regulation": 12,
+                "gir_percentage": 66.7,
+                "fairways_hit": 10,
+                "fairways_percentage": 71.4,
+                "avg_putts_per_hole": 1.8,
+                "total_putts": 32,
+                "penalties": 2,
+                "sand_shots": 1,
+                "water_shots": 0
+            }
+        }
+
+class TeeBoxDetailResponse(BaseModel):
+    """Response model for detailed tee box data with hole IDs."""
+    id: str
+    name: str
+    course_id: str
+    rating: Optional[float]
+    slope: Optional[int]
+    yardage: Optional[int]
+    hex: Optional[str]
+    holes: List[TeeBoxHoleResponse]
+    
+    class Config:
+        from_attributes = True
+
+class TeeBoxHoleDetailResponse(BaseModel):
+    """Response model for detailed tee box hole data."""
+    id: str
+    tee_box_id: str
+    number: int
+    par: int
+    yards: int
+    handicap: int
+    tee_box_name: Optional[str]
+    course_id: Optional[str]
+    
+    class Config:
+        from_attributes = True
 
 
 

@@ -1,6 +1,12 @@
 fastapi==0.110.1
 fastui==0.5.2
 pydantic==2.7.0
+pydantic-settings==2.3.0
 python-dotenv==1.0.1
 SQLAlchemy==1.4.50
 psycopg2-binary
+python-ulid==1.1.0
+alembic==1.13.1
+python-jose[cryptography]==3.4.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.20

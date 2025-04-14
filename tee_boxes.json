@@ -1,0 +1,54 @@
+[
+  {
+    "tee_box_name": "Championship",
+    "rating": 74.2,
+    "slope": 148,
+    "yardage": 7181,
+    "holes": [
+      {"hole_number": 1, "par": 4, "yardage": 378, "handicap": 11},
+      {"hole_number": 2, "par": 4, "yardage": 436, "handicap": 7},
+      {"hole_number": 3, "par": 3, "yardage": 181, "handicap": 17},
+      {"hole_number": 4, "par": 4, "yardage": 490, "handicap": 3},
+      {"hole_number": 5, "par": 5, "yardage": 591, "handicap": 1},
+      {"hole_number": 6, "par": 3, "yardage": 224, "handicap": 13},
+      {"hole_number": 7, "par": 4, "yardage": 397, "handicap": 9},
+      {"hole_number": 8, "par": 3, "yardage": 220, "handicap": 15},
+      {"hole_number": 9, "par": 4, "yardage": 432, "handicap": 5},
+      {"hole_number": 10, "par": 4, "yardage": 428, "handicap": 6},
+      {"hole_number": 11, "par": 3, "yardage": 210, "handicap": 14},
+      {"hole_number": 12, "par": 4, "yardage": 467, "handicap": 4},
+      {"hole_number": 13, "par": 5, "yardage": 562, "handicap": 2},
+      {"hole_number": 14, "par": 3, "yardage": 178, "handicap": 16},
+      {"hole_number": 15, "par": 4, "yardage": 421, "handicap": 10},
+      {"hole_number": 16, "par": 4, "yardage": 442, "handicap": 8},
+      {"hole_number": 17, "par": 3, "yardage": 215, "handicap": 18},
+      {"hole_number": 18, "par": 4, "yardage": 423, "handicap": 12}
+    ]
+  },
+  {
+    "tee_box_name": "Regular",
+    "rating": 71.8,
+    "slope": 138,
+    "yardage": 6579,
+    "holes": [
+      {"hole_number": 1, "par": 4, "yardage": 348, "handicap": 11},
+      {"hole_number": 2, "par": 4, "yardage": 401, "handicap": 7},
+      {"hole_number": 3, "par": 3, "yardage": 164, "handicap": 17},
+      {"hole_number": 4, "par": 4, "yardage": 452, "handicap": 3},
+      {"hole_number": 5, "par": 5, "yardage": 545, "handicap": 1},
+      {"hole_number": 6, "par": 3, "yardage": 198, "handicap": 13},
+      {"hole_number": 7, "par": 4, "yardage": 366, "handicap": 9},
+      {"hole_number": 8, "par": 3, "yardage": 189, "handicap": 15},
+      {"hole_number": 9, "par": 4, "yardage": 401, "handicap": 5},
+      {"hole_number": 10, "par": 4, "yardage": 396, "handicap": 6},
+      {"hole_number": 11, "par": 3, "yardage": 185, "handicap": 14},
+      {"hole_number": 12, "par": 4, "yardage": 427, "handicap": 4},
+      {"hole_number": 13, "par": 5, "yardage": 519, "handicap": 2},
+      {"hole_number": 14, "par": 3, "yardage": 155, "handicap": 16},
+      {"hole_number": 15, "par": 4, "yardage": 389, "handicap": 10},
+      {"hole_number": 16, "par": 4, "yardage": 407, "handicap": 8},
+      {"hole_number": 17, "par": 3, "yardage": 186, "handicap": 18},
+      {"hole_number": 18, "par": 4, "yardage": 392, "handicap": 12}
+    ]
+  }
+] 

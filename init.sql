@@ -39,8 +39,8 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.tee_boxes (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    course_id uuid NOT NULL,
+    id TEXT PRIMARY KEY,
+    course_id TEXT NOT NULL,
     rating real NOT NULL,
     slope integer NOT NULL,
     yardage integer NOT NULL,
@@ -58,7 +58,7 @@ ALTER TABLE public.tee_boxes OWNER TO golf_api;
 --
 
 CREATE TABLE public.courses (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    id TEXT PRIMARY KEY,
     name character varying(255) NOT NULL,
     address character varying(50),
     city character varying(50),
@@ -78,7 +78,7 @@ ALTER TABLE public.courses OWNER TO golf_api;
 --
 
 CREATE TABLE public.players (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    id TEXT PRIMARY KEY,
     name character varying(50) NOT NULL,
     zip character varying(50),
     handicap character varying(255),
@@ -97,9 +97,9 @@ ALTER TABLE public.players OWNER TO golf_api;
 --
 
 CREATE TABLE public.round_holes (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    round_id uuid,
-    tee_box_hole_id uuid NOT NULL,
+    id TEXT PRIMARY KEY,
+    round_id TEXT,
+    tee_box_hole_id TEXT NOT NULL,
     score integer NOT NULL,
     gir boolean,
     fairway character varying(8),
@@ -119,10 +119,10 @@ ALTER TABLE public.round_holes OWNER TO golf_api;
 --
 
 CREATE TABLE public.rounds (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    player_id uuid NOT NULL,
-    course_id uuid NOT NULL,
-    tee_box_id uuid NOT NULL,
+    id TEXT PRIMARY KEY,
+    player_id TEXT NOT NULL,
+    course_id TEXT NOT NULL,
+    tee_box_id TEXT NOT NULL,
     total_score integer,
     holes integer,
     created_on timestamp without time zone NOT NULL,
@@ -138,8 +138,9 @@ ALTER TABLE public.rounds OWNER TO golf_api;
 -- Name: tee_boxes course_tees_pkey; Type: CONSTRAINT; Schema: public; Owner: golf_api
 --
 
-ALTER TABLE ONLY public.tee_boxes
-    ADD CONSTRAINT course_tees_pkey PRIMARY KEY (id);
+-- Removed redundant constraint
+-- ALTER TABLE ONLY public.tee_boxes
+--    ADD CONSTRAINT course_tees_pkey PRIMARY KEY (id);
 
 
 --
@@ -154,8 +155,9 @@ ALTER TABLE ONLY public.courses
 -- Name: courses courses_pkey; Type: CONSTRAINT; Schema: public; Owner: golf_api
 --
 
-ALTER TABLE ONLY public.courses
-    ADD CONSTRAINT courses_pkey PRIMARY KEY (id);
+-- Removed redundant constraint
+-- ALTER TABLE ONLY public.courses
+--    ADD CONSTRAINT courses_pkey PRIMARY KEY (id);
 
 
 --
@@ -170,24 +172,27 @@ ALTER TABLE ONLY public.players
 -- Name: players golfers_pkey; Type: CONSTRAINT; Schema: public; Owner: golf_api
 --
 
-ALTER TABLE ONLY public.players
-    ADD CONSTRAINT golfers_pkey PRIMARY KEY (id);
+-- Removed redundant constraint
+-- ALTER TABLE ONLY public.players
+--    ADD CONSTRAINT golfers_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: round_holes round_holes_pkey; Type: CONSTRAINT; Schema: public; Owner: golf_api
 --
 
-ALTER TABLE ONLY public.round_holes
-    ADD CONSTRAINT round_holes_pkey PRIMARY KEY (id);
+-- Removed redundant constraint
+-- ALTER TABLE ONLY public.round_holes
+--    ADD CONSTRAINT round_holes_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: rounds rounds_pkey; Type: CONSTRAINT; Schema: public; Owner: golf_api
 --
 
-ALTER TABLE ONLY public.rounds
-    ADD CONSTRAINT rounds_pkey PRIMARY KEY (id);
+-- Removed redundant constraint
+-- ALTER TABLE ONLY public.rounds
+--    ADD CONSTRAINT rounds_pkey PRIMARY KEY (id);
 
 
 --

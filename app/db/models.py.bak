@@ -2,86 +2,34 @@
 Models
 '''
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 import datetime
-from db.database import SessionLocal, Base
+from db.database import SessionLocal
 from sqlalchemy import UniqueConstraint, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, text, func
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, declared_attr
 from ulid import ULID
 
+Base = declarative_base()
+
 
 class TimestampMixin:
-    """Adds created_on timestamp to models."""
     @declared_attr
     def created_on(cls):
         return Column(DateTime, default=func.now(), nullable=False)
 
-
-class Player(Base, TimestampMixin):
-    """Player model representing a user in the system."""
+class Player(Base):
     __tablename__ = 'players'
-    
     id = Column(String(26), primary_key=True, default=lambda: str(ULID()), nullable=False)
     name = Column(String(50), nullable=False)
-    email = Column(String(50), nullable=True, unique=True)
-    zip = Column(String(50), nullable=True)
-    handicap = Column(Float, nullable=True)
-    ghin_number = Column(String, nullable=True)
-    is_active = Column(Boolean, default=True)
-    hashed_password = Column(String(128), nullable=True)
-    is_super = Column(Boolean, default=False)
+    email = Column(String(50))
+    zip = Column(String(50))  # Match the database type
+    handicap = Column(String(255))  # Match the database type
+    ghin_number = Column(Integer)
+    hashed_password = Column(String(50))
+    is_active = Column(Boolean)
+    is_super = Column(Boolean)
     rounds = relationship('Round', back_populates='player', cascade='all, delete')
-    
-    # Added utility methods for permission checking
-    def has_permission(self, permission_name: str, context_id: Optional[str] = None) -> bool:
-        """Check if player has a specific permission, optionally in a specific context.
-        
-        Args:
-            permission_name: The name of the permission to check
-            context_id: Optional context ID for context-specific permissions
-            
-        Returns:
-            bool: True if the player has the permission, False otherwise
-        """
-        # Super users always have all permissions
-        if self.is_super:
-            return True
-            
-        # Check roles for specific permission
-        if hasattr(self, 'roles'):
-            for player_role in self.roles:
-                # If context_id is specified, only check roles assigned in that context
-                if context_id and player_role.context_id != context_id and player_role.context_id is not None:
-                    continue
-                    
-                for role_permission in player_role.role.permissions:
-                    if role_permission.permission.name == permission_name:
-                        return True
-        return False
-    
-    def has_role(self, role_name: str, context_id: Optional[str] = None) -> bool:
-        """Check if player has a specific role, optionally in a specific context.
-        
-        Args:
-            role_name: The name of the role to check
-            context_id: Optional context ID for context-specific roles
-            
-        Returns:
-            bool: True if the player has the role, False otherwise
-        """
-        if hasattr(self, 'roles'):
-            for player_role in self.roles:
-                # If context_id is specified, only check roles assigned in that context
-                if context_id and player_role.context_id != context_id and player_role.context_id is not None:
-                    continue
-                    
-                if player_role.role.name == role_name:
-                    return True
-        return False
-
-    def __repr__(self) -> str:
-        return f"<Player(id='{self.id}', name='{self.name}', email='{self.email}')>"
-
 
 class Course(Base, TimestampMixin):
     __tablename__ = 'courses'
@@ -95,7 +43,6 @@ class Course(Base, TimestampMixin):
     tees = relationship('TeeBox', back_populates='course', cascade='all, delete')
     rounds = relationship('Round', back_populates='course')
 
-
 class TeeBox(Base, TimestampMixin):
     __tablename__ = 'tee_boxes'
     id = Column(String(26), primary_key=True, default=lambda: str(ULID()), nullable=False)
@@ -108,7 +55,6 @@ class TeeBox(Base, TimestampMixin):
     course = relationship('Course', back_populates='tees')
     rounds = relationship('Round', back_populates='tees')
     hole = relationship('TeeBoxHole', back_populates='tees')
-
 
 class TeeBoxHole(Base, TimestampMixin):
     __tablename__ = 'tee_box_holes'
@@ -137,7 +83,6 @@ class Round(Base, TimestampMixin):
     player = relationship('Player', back_populates='rounds')
     round_holes = relationship('RoundHole', back_populates='rounds', cascade='all, delete')
 
-
 class RoundHole(Base, TimestampMixin):
     __tablename__ = 'round_holes'
     id = Column(String(26), primary_key=True, default=lambda: str(ULID()), nullable=False)
@@ -156,4 +101,7 @@ class RoundHole(Base, TimestampMixin):
     # Unique constraint on round_id and tee_box_hole_id
     __table_args__ = (
         UniqueConstraint('round_id', 'tee_box_hole_id', name='unique_round_hole_per_round'),
-    ) 
+    )
+
+
+
