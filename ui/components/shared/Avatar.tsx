@@ -4,11 +4,14 @@ import { View, Text } from 'react-native';
 type Props = { name: string; size?: number };
 
 export function Avatar({ name, size = 40 }: Props) {
-  const initials = name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('');
+  const initials = name.trim()
+    ? name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? '')
+        .join('')
+    : '?';
 
   return (
     <View

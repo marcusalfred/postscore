@@ -8,10 +8,10 @@ export function ScoreLabel({ toPar, size = 'md' }: Props) {
   const color =
     toPar < 0 ? '#43a047' : toPar > 0 ? '#e53935' : '#888888';
   const fontSize = size === 'lg' ? 24 : size === 'sm' ? 12 : 16;
-  const fontWeight = size === 'lg' ? '700' : '600';
+  const fontWeight: '600' | '700' = size === 'lg' ? '700' : '600';
 
   return (
-    <Text style={{ color, fontSize, fontWeight: fontWeight as '600' | '700' }}>
+    <Text style={{ color, fontSize, fontWeight }}>
       {label}
     </Text>
   );
