@@ -41,28 +41,7 @@ async def get_courses(
     Returns:
         List[CourseResponse]: List of courses
     """
-    courses = course_repository.get_all(db, name=name)
-    
-    # Prepare response with tees
-    response = []
-    for course in courses:
-        try:
-            course_with_tees = course_repository.get_with_tees(db, course.id)
-            response.append(course_with_tees)
-        except Exception:
-            # If we can't get tees for a course, return basic course info
-            response.append(CourseResponse(
-                id=course.id,
-                name=course.name,
-                address=course.address,
-                city=course.city,
-                state=course.state,
-                zip=course.zip,
-                website=course.website,
-                tees=[]
-            ))
-    
-    return response
+    return course_repository.get_all_with_tees(db, name=name)
 
 
 @router.get(
@@ -216,7 +195,7 @@ async def delete_course(
 
 @router.post(
     "/{course_id}/bulk_tees",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     summary="Add tee boxes to a course",
     description="Add multiple tee boxes with holes to an existing course.",
     tags=["Courses"]

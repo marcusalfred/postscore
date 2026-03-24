@@ -1,0 +1,98 @@
+---
+title: Getting Started
+description: How to run the POSTscore API locally or with Docker
+---
+
+# Getting Started
+
+## Requirements
+
+- [Docker](https://www.docker.com/) (recommended), or Python 3.11+ with PostgreSQL
+
+---
+
+## Run with Docker (recommended)
+
+Clone the repository and start everything with a single command:
+
+```bash
+git clone https://github.com/your-org/postscore.git
+cd postscore
+docker compose up --build -d
+```
+
+Docker will:
+1. Start a PostgreSQL database container
+2. Run `alembic upgrade head` to apply all schema migrations
+3. Start the FastAPI application on port **8000**
+
+Once running:
+
+| URL | Description |
+|-----|-------------|
+| `http://localhost:8000` | API root |
+| `http://localhost:8000/docs` | Interactive Swagger UI |
+| `http://localhost:8000/redoc` | ReDoc documentation |
+| `http://localhost:8000/openapi.json` | Raw OpenAPI schema |
+
+### Seed development data
+
+After the containers are up, optionally load sample data:
+
+```bash
+docker exec -i postscore_db psql -U postgres -d postscore < seed_data.sql
+```
+
+---
+
+## Run locally with uvicorn
+
+### 1. Install dependencies
+
+```bash
+cd app
+pip install -r requirements.txt
+```
+
+### 2. Configure environment variables
+
+```bash
+cp ../example.env .env
+```
+
+Then edit `.env` and fill in your PostgreSQL connection details:
+
+```ini
+DB_NAME=postscore
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+DB_PORT=5432
+```
+
+### 3. Apply database migrations
+
+From the repository root:
+
+```bash
+alembic upgrade head
+```
+
+### 4. Start the server
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API is now available at `http://localhost:8000`. The interactive docs are at `http://localhost:8000/docs`.
+
+---
+
+## Generating new migrations
+
+After modifying a SQLAlchemy model in `app/db/models.py`, generate a migration:
+
+```bash
+alembic revision --autogenerate -m "describe your change"
+alembic upgrade head
+```

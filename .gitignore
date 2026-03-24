@@ -160,4 +160,5 @@ cython_debug/
 #.idea/
 
 # Todo's that I don't want to share 
-TODO.md
+TODO.md*.db
+.superpowers/

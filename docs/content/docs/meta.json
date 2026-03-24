@@ -1,0 +1,9 @@
+{
+  "title": "POSTscore",
+  "pages": [
+    "index",
+    "getting-started",
+    "authentication",
+    "api-reference"
+  ]
+}

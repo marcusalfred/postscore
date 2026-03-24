@@ -4,14 +4,14 @@ POSTscore API - Golf score tracking application.
 This is the main application entry point that sets up the FastAPI instance,
 configures middleware, exception handlers, and includes all routes.
 """
+import logging
+
 from fastapi import FastAPI, APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-# FastUI components for the index page
-from fastui import AnyComponent, FastUI
-from fastui import components as c
+_logger = logging.getLogger(__name__)
 
 # New versioned API
 from api.v1.api import api_router as api_v1_router
@@ -19,7 +19,7 @@ from api.v1.api import api_router as api_v1_router
 # Core modules
 from core.config import settings
 from core.logging import setup_logging, RequestLoggingMiddleware
-from core.errors import APIException, ResourceNotFoundException, ValidationException, AuthorizationException, AuthenticationException, DatabaseException
+from core.errors import APIException
 
 # Set up logging
 setup_logging()
@@ -32,10 +32,13 @@ def create_application() -> FastAPI:
     Returns:
         FastAPI: The configured application
     """
+    if settings.ENVIRONMENT == "production" and settings.SECRET_KEY == "dev-secret-key-do-not-use-in-production":
+        raise RuntimeError("SECRET_KEY must be set in production")
+
     app = FastAPI(
         title='POSTscore',
         description='An API to record your scores at different golf courses',
-        version='0.2.0',
+        version=settings.API_VERSION,
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -53,48 +56,13 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Exception handlers
+    # Exception handlers — single handler for APIException and all subclasses
     @app.exception_handler(APIException)
     async def api_exception_handler(request: Request, exc: APIException):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
             headers=exc.headers
-        )
-
-    @app.exception_handler(ResourceNotFoundException)
-    async def not_found_exception_handler(request: Request, exc: ResourceNotFoundException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
-
-    @app.exception_handler(ValidationException)
-    async def validation_exception_handler(request: Request, exc: ValidationException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
-
-    @app.exception_handler(AuthorizationException)
-    async def authorization_exception_handler(request: Request, exc: AuthorizationException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
-
-    @app.exception_handler(AuthenticationException)
-    async def authentication_exception_handler(request: Request, exc: AuthenticationException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
-
-    @app.exception_handler(DatabaseException)
-    async def database_exception_handler(request: Request, exc: DatabaseException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
         )
     
     # New versioned API
@@ -103,22 +71,9 @@ def create_application() -> FastAPI:
     # Root router for UI
     router = APIRouter()
     
-    @router.get('/', response_model=FastUI, response_model_exclude_none=True)
-    def api_index() -> list[AnyComponent]:
-        # language=markdown
-        markdown = """\
-    POSTscore - Track your golf scores and stats!
-    
-    This application provides:
-    
-    * Player management
-    * Course and tee box tracking
-    * Round scoring
-    * Statistics and analysis
-    
-    Check out the API documentation at [/docs](/docs) for available endpoints.
-    """
-        return [c.Markdown(content=markdown)]
+    @router.get('/')
+    def api_index():
+        return RedirectResponse(url='/docs')
     
     @router.get('/{path:path}', status_code=404)
     async def api_404():

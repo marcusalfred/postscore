@@ -1,46 +1,46 @@
 version: '3.8'
 
 services:
-  postgres:
+  db:
+    image: postgres:15
     container_name: postscore_db
-    image: postgres:latest
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST_AUTH_METHOD: trust
-      GOLF_API_PASSWORD: golfapi123  # password for the golf_api role
-    ports:
-      - "${DB_PORT}:5432"
+      POSTGRES_DB: postscore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/02-init.sql
-      - ./setup-golf-api.sh:/docker-entrypoint-initdb.d/01-setup-golf-api.sh
-    command: ["postgres", "-c", "log_statement=all"]
-  app:
-    container_name: postscore_api
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
-      - "5555:5555"
-    depends_on:
-      - postgres
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: postscore_api
     environment:
-      DB_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: postscore
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
       DB_PORT: 5432
-      # JWT Settings
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      JWT_ALGORITHM: ${JWT_ALGORITHM}
-      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
-      # App Settings
-      SETUP_SECRET: ${SETUP_SECRET}
+      JWT_SECRET_KEY: your-secret-key-here
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
     volumes:
-      - ./app:/app
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "while ! nc -z db 5432; do sleep 1; done &&
+             alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   pgdata:

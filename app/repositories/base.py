@@ -4,6 +4,7 @@ This module provides a generic repository pattern implementation
 for basic CRUD operations.
 """
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from db.models import Base
@@ -43,7 +44,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             Optional[ModelType]: The record if found, None otherwise
         """
-        return db.query(self.model).filter(self.model.id == id).first()
+        return db.execute(select(self.model).where(self.model.id == id)).scalar_one_or_none()
     
     def get_or_404(self, db: Session, id: str) -> ModelType:
         """
@@ -78,7 +79,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             List[ModelType]: List of records
         """
-        return db.query(self.model).offset(skip).limit(limit).all()
+        return db.execute(select(self.model).offset(skip).limit(limit)).scalars().all()
     
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         """
@@ -91,7 +92,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             ModelType: The created record
         """
-        obj_in_data = obj_in.dict()
+        obj_in_data = obj_in.model_dump()
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
         db.commit()
@@ -116,7 +117,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.dict(exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
         
         for field in obj_data:
             if field in update_data:

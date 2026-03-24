@@ -5,8 +5,10 @@ These endpoints are only accessible to superusers.
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
+from core.config import settings
 from core.security import get_current_superuser
 from db.database import get_db
 from db.models import Player
@@ -75,7 +77,7 @@ async def run_migration(
         """
         
         # Execute the SQL directly
-        db.execute(sql)
+        db.execute(text(sql))
         db.commit()
         
         return {"status": "success", "message": "Migration completed successfully"}
@@ -110,11 +112,11 @@ async def get_system_info(
     """
     try:
         # Count records in main tables
-        player_count = db.query(Player).count()
-        
+        player_count = db.execute(select(func.count()).select_from(Player)).scalar_one()
+
         # Get other counts
-        course_count_result = db.execute("SELECT COUNT(*) FROM courses").scalar()
-        round_count_result = db.execute("SELECT COUNT(*) FROM rounds").scalar()
+        course_count_result = db.execute(text("SELECT COUNT(*) FROM courses")).scalar()
+        round_count_result = db.execute(text("SELECT COUNT(*) FROM rounds")).scalar()
         
         return {
             "status": "success",
@@ -124,7 +126,7 @@ async def get_system_info(
                     "course_count": course_count_result,
                     "round_count": round_count_result
                 },
-                "api_version": "0.2.0"
+                "api_version": settings.API_VERSION
             }
         }
     except Exception as e:

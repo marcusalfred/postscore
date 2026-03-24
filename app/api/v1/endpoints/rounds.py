@@ -1,9 +1,10 @@
 """
 API endpoints for round management.
 """
-from typing import Any, List, Optional, Dict
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Body, Path, Query, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.security import get_current_active_user, get_current_superuser
@@ -11,11 +12,11 @@ from db.database import get_db
 from db.models import Player, Round, RoundHole, Course, TeeBox, TeeBoxHole
 from repositories.round_repository import round_repository
 from schemas.pydantic_models import (
-    RoundRequest, RoundPatchRequest, RoundResponse,
+    RoundRequest, RoundPatchRequest, RoundResponse, RoundWithHolesResponse,
     RoundHoleRequest, RoundHolePatchRequest, RoundHoleResponse, RoundHoleDetailResponse,
     RoundStatsResponse
 )
-from core.errors import ResourceNotFoundException, ValidationException, DatabaseException
+from core.errors import ResourceNotFoundException, ValidationException, AuthorizationException, DatabaseException
 
 router = APIRouter()
 
@@ -46,6 +47,8 @@ async def get_rounds(
     Returns:
         List[RoundResponse]: List of rounds
     """
+    if player_id and course_id:
+        raise ValidationException("Provide either player_id or course_id, not both")
     if player_id:
         rounds = round_repository.get_by_player(db, player_id)
     elif course_id:
@@ -53,12 +56,43 @@ async def get_rounds(
     else:
         rounds = round_repository.get_multi(db)
     
-    return [RoundResponse.from_orm(round_obj) for round_obj in rounds]
+    return [RoundResponse.model_validate(round_obj) for round_obj in rounds]
+
+
+@router.get(
+    "/{round_id}/stats",
+    response_model=RoundStatsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get round statistics",
+    description="Retrieve statistics for a specific round, including score, GIR, fairways, putts, and more.",
+    tags=["Rounds"]
+)
+async def get_round_stats(
+    round_id: str = Path(..., description="The ID of the round to retrieve statistics for"),
+    db: Session = Depends(get_db),
+    current_user: Player = Depends(get_current_active_user)
+) -> RoundStatsResponse:
+    """
+    Get statistics for a specific round.
+
+    Args:
+        round_id: Round ID
+        db: Database session
+        current_user: Authenticated user
+
+    Returns:
+        RoundStatsResponse: Computed round statistics
+
+    Raises:
+        ResourceNotFoundException: If the round is not found
+    """
+    stats = round_repository.get_round_stats(db, round_id)
+    return RoundStatsResponse(**stats)
 
 
 @router.get(
     "/{round_id}",
-    response_model=Dict[str, Any],
+    response_model=RoundWithHolesResponse,
     status_code=status.HTTP_200_OK,
     summary="Get a specific round",
     description="Retrieve a specific round by ID, including its holes.",
@@ -68,18 +102,18 @@ async def get_round(
     round_id: str = Path(..., description="The ID of the round to retrieve"),
     db: Session = Depends(get_db),
     current_user: Player = Depends(get_current_active_user)
-) -> Dict[str, Any]:
+) -> RoundWithHolesResponse:
     """
     Get a specific round by ID, including its holes.
-    
+
     Args:
         round_id: Round ID
         db: Database session
         current_user: Authenticated user
-        
+
     Returns:
-        Dict[str, Any]: Round details with holes
-        
+        RoundWithHolesResponse: Round details with holes
+
     Raises:
         ResourceNotFoundException: If the round is not found
     """
@@ -123,13 +157,13 @@ async def create_round(
         ValidationException: If user tries to create a round for another player
         DatabaseException: If there's an error creating the round
     """
-    # Check if the user is creating a round for themselves or is an admin
-    if round_data.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only create rounds for yourself")
-    
+    # Superusers may specify a player_id; regular users always create for themselves
+    if round_data.player_id is None or not current_user.is_super:
+        round_data.player_id = current_user.id
+
     # Create the round
     round_obj = round_repository.create(db, obj_in=round_data)
-    return RoundResponse.from_orm(round_obj)
+    return RoundResponse.model_validate(round_obj)
 
 
 @router.patch(
@@ -173,11 +207,11 @@ async def update_round(
     
     # Check if the user is updating their own round or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only update your own rounds")
+        raise AuthorizationException("You can only update your own rounds")
     
     # Update the round
     round_obj = round_repository.update(db, db_obj=round_obj, obj_in=round_data)
-    return RoundResponse.from_orm(round_obj)
+    return RoundResponse.model_validate(round_obj)
 
 
 @router.delete(
@@ -209,7 +243,7 @@ async def delete_round(
     
     # Check if the user is deleting their own round or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only delete your own rounds")
+        raise AuthorizationException("You can only delete your own rounds")
     
     # Delete the round
     round_repository.remove(db, id=round_id)
@@ -260,17 +294,17 @@ async def add_round_hole(
     
     # Check if the user is adding a hole to their own round or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only add holes to your own rounds")
+        raise AuthorizationException("You can only add holes to your own rounds")
     
     # Extract non-pydantic fields
-    hole_dict = hole_data.dict(exclude={"round_id", "tee_box_hole_id"})
+    hole_dict = hole_data.model_dump(exclude={"round_id", "tee_box_hole_id"})
     
     # Add the hole
     round_hole = round_repository.add_round_hole(
         db, hole_data.round_id, hole_data.tee_box_hole_id, hole_dict
     )
     
-    return RoundHoleResponse.from_orm(round_hole)
+    return RoundHoleResponse.model_validate(round_hole)
 
 
 @router.patch(
@@ -311,23 +345,23 @@ async def update_round_hole(
         DatabaseException: If there's an error updating the hole
     """
     # Get the round hole
-    round_hole = db.query(RoundHole).filter(RoundHole.id == round_hole_id).first()
+    round_hole = db.execute(select(RoundHole).where(RoundHole.id == round_hole_id)).scalar_one_or_none()
     if round_hole is None:
         raise ResourceNotFoundException("RoundHole", round_hole_id)
-    
+
     # Get the round
     round_obj = round_repository.get_or_404(db, round_hole.round_id)
-    
+
     # Check if the user is updating a hole for their own round or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only update holes for your own rounds")
-    
+        raise AuthorizationException("You can only update holes for your own rounds")
+
     # Update the hole
     round_hole = round_repository.update_round_hole(
-        db, round_hole_id, hole_data.dict(exclude_unset=True)
+        db, round_hole_id, hole_data.model_dump(exclude_unset=True)
     )
     
-    return RoundHoleResponse.from_orm(round_hole)
+    return RoundHoleResponse.model_validate(round_hole)
 
 
 @router.delete(
@@ -356,16 +390,16 @@ async def delete_round_hole(
         DatabaseException: If there's an error deleting the hole
     """
     # Get the round hole
-    round_hole = db.query(RoundHole).filter(RoundHole.id == round_hole_id).first()
+    round_hole = db.execute(select(RoundHole).where(RoundHole.id == round_hole_id)).scalar_one_or_none()
     if round_hole is None:
         raise ResourceNotFoundException("RoundHole", round_hole_id)
-    
+
     # Get the round
     round_obj = round_repository.get_or_404(db, round_hole.round_id)
-    
+
     # Check if the user is deleting a hole for their own round or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only delete holes for your own rounds")
+        raise AuthorizationException("You can only delete holes for your own rounds")
     
     # Delete the hole
     round_repository.delete_round_hole(db, round_hole_id)
@@ -400,16 +434,16 @@ async def get_round_hole(
         ValidationException: If user tries to access a hole for another player's round
     """
     # Get the round hole
-    round_hole = db.query(RoundHole).filter(RoundHole.id == round_hole_id).first()
+    round_hole = db.execute(select(RoundHole).where(RoundHole.id == round_hole_id)).scalar_one_or_none()
     if round_hole is None:
         raise ResourceNotFoundException("RoundHole", round_hole_id)
-    
+
     # Get the round
     round_obj = round_repository.get_or_404(db, round_hole.round_id)
-    
+
     # Check if the user is accessing their own round hole or is an admin
     if round_obj.player_id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only access holes for your own rounds")
+        raise AuthorizationException("You can only access holes for your own rounds")
     
     # Get the round hole details
     return round_repository.get_round_hole(db, round_hole_id) 

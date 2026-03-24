@@ -1,0 +1,35 @@
+---
+title: POSTscore
+description: Golf scoring API built with FastAPI and PostgreSQL
+---
+
+# POSTscore
+
+POSTscore is a golf scoring REST API built with **FastAPI** and **PostgreSQL**. It provides a complete backend for tracking golf rounds, courses, tee boxes, and player scores.
+
+## What it does
+
+- Manage golf courses with multiple tee boxes and per-hole details
+- Record player rounds with hole-by-hole scoring
+- Authenticate players with JWT-based auth
+- Full CRUD for players, courses, and rounds
+
+## Data hierarchy
+
+```
+Course
+  └── TeeBox (multiple tee colors per course)
+        └── TeeBoxHole (18 holes per tee box)
+
+Player
+  └── Round (references a Course + TeeBox)
+        └── RoundHole (references a TeeBoxHole; unique per round + hole)
+```
+
+All IDs in POSTscore are **ULIDs** — 26-character lexicographically sortable strings.
+
+## Next steps
+
+- [Getting Started](/docs/getting-started) — run the API locally or with Docker
+- [Authentication](/docs/authentication) — sign up, log in, and use your token
+- [API Reference](/docs/api-reference) — full endpoint documentation

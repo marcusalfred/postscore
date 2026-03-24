@@ -25,7 +25,6 @@ from schemas.pydantic_models import (
     Token,
     PlayerResponse,
     PlayerRequest,
-    UserSignupRequest
 )
 from core.errors import ValidationException, AuthenticationException
 
@@ -85,7 +84,7 @@ async def login_for_access_token(
     description="Register a new player account with email and password.",
 )
 async def signup(
-    player_data: UserSignupRequest = Body(...),
+    player_data: PlayerRequest = Body(...),
     db: Session = Depends(get_db)
 ) -> PlayerResponse:
     """
@@ -105,24 +104,14 @@ async def signup(
     existing_player = player_repository.get_by_email(db, player_data.email)
     if existing_player:
         raise ValidationException("Email already registered")
-    
-    # Validate password
-    if not player_data.password or len(player_data.password) < 8:
-        raise ValidationException("Password must be at least 8 characters long")
-    
-    # Convert to dictionary and handle password
-    obj_in_data = player_data.dict(exclude_unset=True)
-    obj_in_data["hashed_password"] = get_password_hash(player_data.password)
-    del obj_in_data["password"]
-    
-    # Set default values
-    obj_in_data["is_active"] = True
-    obj_in_data["is_super"] = False
-    
+
+    if not player_data.password:
+        raise ValidationException("Password is required for signup")
+
     # Create the player
-    player = player_repository.create(db, obj_in_data)
+    player = player_repository.create_with_password(db, player_data)
     
-    return PlayerResponse.from_orm(player)
+    return PlayerResponse.model_validate(player)
 
 
 @router.get(
@@ -144,4 +133,4 @@ async def read_users_me(
     Returns:
         PlayerResponse: User information
     """
-    return PlayerResponse.from_orm(current_user) 
+    return PlayerResponse.model_validate(current_user)

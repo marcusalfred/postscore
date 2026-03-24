@@ -10,12 +10,13 @@ from jose import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db.database import get_db
 from db.models import Player
 from core.config import settings
-from core.errors import AuthenticationException
+from core.errors import AuthenticationException, AuthorizationException
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -99,7 +100,7 @@ def get_current_user(
     except jwt.JWTError:
         raise AuthenticationException("Could not validate credentials")
     
-    user = db.query(Player).filter(Player.id == user_id).first()
+    user = db.execute(select(Player).where(Player.id == user_id)).scalar_one_or_none()
     if user is None:
         raise AuthenticationException("User not found")
     return user
@@ -121,7 +122,7 @@ def get_current_active_user(
         AuthenticationException: If user is inactive
     """
     if not current_user.is_active:
-        raise AuthenticationException("Inactive user")
+        raise AuthorizationException("Account is inactive")
     return current_user
 
 
@@ -141,5 +142,5 @@ def get_current_superuser(
         AuthenticationException: If user is not a superuser
     """
     if not current_user.is_super:
-        raise AuthenticationException("Not a superuser")
+        raise AuthorizationException("Insufficient permissions")
     return current_user 

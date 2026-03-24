@@ -1,12 +1,16 @@
 """
 API endpoints for player management.
 """
+import logging
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, Body, Path, Query, status, HTTPException
+from fastapi import APIRouter, Depends, Body, Header, Path, Query, status, HTTPException
 from sqlalchemy.orm import Session
 
+from core.config import settings
 from core.security import get_current_active_user, get_current_superuser
+
+logger = logging.getLogger(__name__)
 from db.database import get_db
 from db.models import Player
 from repositories.player_repository import player_repository
@@ -15,7 +19,7 @@ from schemas.pydantic_models import (
     PlayerRequestPatch,
     PlayerResponse,
 )
-from core.errors import ResourceNotFoundException, ValidationException, DatabaseException
+from core.errors import ResourceNotFoundException, ValidationException, AuthorizationException, DatabaseException
 
 router = APIRouter()
 
@@ -45,7 +49,7 @@ async def get_players(
         List[PlayerResponse]: List of players
     """
     players = player_repository.get_all(db, name=name)
-    return [PlayerResponse.from_orm(player) for player in players]
+    return [PlayerResponse.model_validate(player) for player in players]
 
 
 @router.get(
@@ -76,7 +80,7 @@ async def get_player(
         ResourceNotFoundException: If the player is not found
     """
     player = player_repository.get_or_404(db, player_id)
-    return PlayerResponse.from_orm(player)
+    return PlayerResponse.model_validate(player)
 
 
 @router.post(
@@ -123,7 +127,7 @@ async def create_player(
     
     # Create the player
     player = player_repository.create_with_password(db, player_data)
-    return PlayerResponse.from_orm(player)
+    return PlayerResponse.model_validate(player)
 
 
 @router.patch(
@@ -167,7 +171,7 @@ async def update_player(
     
     # Check if the user is updating their own profile or is an admin
     if player.id != current_user.id and not current_user.is_super:
-        raise ValidationException("You can only update your own player profile")
+        raise AuthorizationException("You can only update your own player profile")
     
     # If email is being updated, check if it's already in use
     if player_data.email and player_data.email != player.email:
@@ -177,7 +181,7 @@ async def update_player(
     
     # Update the player
     player = player_repository.update(db, db_obj=player, obj_in=player_data)
-    return PlayerResponse.from_orm(player)
+    return PlayerResponse.model_validate(player)
 
 
 @router.delete(
@@ -215,7 +219,7 @@ async def delete_player(
     tags=["Players"]
 )
 async def setup_super_user(
-    setup_key: str = Query(..., description="The setup key to verify"),
+    setup_key: Optional[str] = Header(None, alias="x-setup-key", description="The setup key to verify"),
     player_data: PlayerRequest = Body(
         ...,
         example={
@@ -231,22 +235,24 @@ async def setup_super_user(
 ) -> PlayerResponse:
     """
     Create a super user during initial setup.
-    
+
     Args:
-        setup_key: Secret key to verify authorization
+        setup_key: Secret key to verify authorization (passed as x-setup-key header)
         player_data: Player data
         db: Database session
-        
+
     Returns:
         PlayerResponse: Created super user
-        
+
     Raises:
         HTTPException: If the setup key is invalid or there's an error creating the user
     """
+    # Disable endpoint if SETUP_SECRET is not configured
+    if not settings.SETUP_SECRET:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     # Verify setup key
-    from core.config import get_settings
-    expected_key = get_settings().SETUP_SECRET
-    if setup_key != expected_key:
+    if setup_key != settings.SETUP_SECRET:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid setup key")
     
     # Check if email already exists
@@ -256,7 +262,7 @@ async def setup_super_user(
     
     try:
         # Create the player with super user rights
-        obj_in_data = player_data.dict(exclude_unset=True)
+        obj_in_data = player_data.model_dump(exclude_unset=True)
         
         # Hash the password if provided
         if player_data.password:
@@ -274,7 +280,7 @@ async def setup_super_user(
         db.commit()
         db.refresh(db_obj)
         
-        print(f"New super user created: {db_obj}")
+        logger.info(f"New super user created: {db_obj.id}")
         return PlayerResponse.from_orm(db_obj)
     except Exception as e:
         db.rollback()

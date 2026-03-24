@@ -2,7 +2,7 @@
 Player repository for database operations.
 """
 from typing import List, Optional, Dict, Any
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from db.models import Player
@@ -31,7 +31,7 @@ class PlayerRepository(BaseRepository[Player, PlayerRequest, PlayerRequestPatch]
         Returns:
             Optional[Player]: The player if found, None otherwise
         """
-        return db.query(self.model).filter(func.lower(self.model.email) == email.lower()).first()
+        return db.execute(select(self.model).where(func.lower(self.model.email) == email.lower())).scalar_one_or_none()
     
     def get_by_name(self, db: Session, name: str) -> List[Player]:
         """
@@ -44,7 +44,7 @@ class PlayerRepository(BaseRepository[Player, PlayerRequest, PlayerRequestPatch]
         Returns:
             List[Player]: List of matching players
         """
-        return db.query(self.model).filter(func.lower(self.model.name).ilike(f'%{name.lower()}%')).all()
+        return db.execute(select(self.model).where(self.model.name.ilike(f'%{name}%'))).scalars().all()
     
     def get_all(self, db: Session, name: Optional[str] = None) -> List[Player]:
         """
@@ -59,7 +59,7 @@ class PlayerRepository(BaseRepository[Player, PlayerRequest, PlayerRequestPatch]
         """
         if name:
             return self.get_by_name(db, name)
-        return db.query(self.model).all()
+        return db.execute(select(self.model)).scalars().all()
     
     def create_with_password(self, db: Session, obj_in: PlayerRequest) -> Player:
         """
@@ -73,7 +73,7 @@ class PlayerRepository(BaseRepository[Player, PlayerRequest, PlayerRequestPatch]
             Player: The created player
         """
         # Create a dict of the player data
-        obj_in_data = obj_in.dict(exclude_unset=True)
+        obj_in_data = obj_in.model_dump(exclude_unset=True)
         
         # Hash the password if provided
         if obj_in.password:

@@ -3,15 +3,11 @@ import os
 import sys
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from dotenv import load_dotenv
 
 from alembic import context
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Load environment variables from .env file
-load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -32,20 +28,10 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-# Setup database URL from environment variables
-db_user = os.getenv("DB_USER", "postgres")
-db_password = os.getenv("DB_PASSWORD", "")
-db_host = os.getenv("DB_HOST", "localhost")
-db_port = os.getenv("DB_PORT", "5432")
-db_name = os.getenv("DB_NAME", "postscore")
-
-if db_password:
-    db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-else:
-    db_url = f"postgresql://{db_user}@{db_host}:{db_port}/{db_name}"
+from app.core.config import settings
 
 # Override sqlalchemy.url from alembic.ini
-config.set_main_option("sqlalchemy.url", db_url)
+config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

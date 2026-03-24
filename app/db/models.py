@@ -2,7 +2,6 @@
 Models
 '''
 
-from typing import List, Optional, Dict, Any
 import datetime
 from db.database import SessionLocal, Base
 from sqlalchemy import UniqueConstraint, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, text, func
@@ -32,53 +31,6 @@ class Player(Base, TimestampMixin):
     is_super = Column(Boolean, default=False)
     rounds = relationship('Round', back_populates='player', cascade='all, delete')
     
-    # Added utility methods for permission checking
-    def has_permission(self, permission_name: str, context_id: Optional[str] = None) -> bool:
-        """Check if player has a specific permission, optionally in a specific context.
-        
-        Args:
-            permission_name: The name of the permission to check
-            context_id: Optional context ID for context-specific permissions
-            
-        Returns:
-            bool: True if the player has the permission, False otherwise
-        """
-        # Super users always have all permissions
-        if self.is_super:
-            return True
-            
-        # Check roles for specific permission
-        if hasattr(self, 'roles'):
-            for player_role in self.roles:
-                # If context_id is specified, only check roles assigned in that context
-                if context_id and player_role.context_id != context_id and player_role.context_id is not None:
-                    continue
-                    
-                for role_permission in player_role.role.permissions:
-                    if role_permission.permission.name == permission_name:
-                        return True
-        return False
-    
-    def has_role(self, role_name: str, context_id: Optional[str] = None) -> bool:
-        """Check if player has a specific role, optionally in a specific context.
-        
-        Args:
-            role_name: The name of the role to check
-            context_id: Optional context ID for context-specific roles
-            
-        Returns:
-            bool: True if the player has the role, False otherwise
-        """
-        if hasattr(self, 'roles'):
-            for player_role in self.roles:
-                # If context_id is specified, only check roles assigned in that context
-                if context_id and player_role.context_id != context_id and player_role.context_id is not None:
-                    continue
-                    
-                if player_role.role.name == role_name:
-                    return True
-        return False
-
     def __repr__(self) -> str:
         return f"<Player(id='{self.id}', name='{self.name}', email='{self.email}')>"
 
@@ -99,7 +51,7 @@ class Course(Base, TimestampMixin):
 class TeeBox(Base, TimestampMixin):
     __tablename__ = 'tee_boxes'
     id = Column(String(26), primary_key=True, default=lambda: str(ULID()), nullable=False)
-    name = Column(String(50), unique=True, nullable=False)
+    name = Column(String(50), nullable=False)
     course_id = Column(String(26), ForeignKey('courses.id'), nullable=False)
     rating = Column(Float)
     slope = Column(Integer)
@@ -108,6 +60,9 @@ class TeeBox(Base, TimestampMixin):
     course = relationship('Course', back_populates='tees')
     rounds = relationship('Round', back_populates='tees')
     hole = relationship('TeeBoxHole', back_populates='tees')
+    __table_args__ = (
+        UniqueConstraint('course_id', 'name', name='uq_tee_box_course_name'),
+    )
 
 
 class TeeBoxHole(Base, TimestampMixin):

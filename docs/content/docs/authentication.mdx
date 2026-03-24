@@ -1,0 +1,115 @@
+---
+title: Authentication
+description: How to sign up, log in, and authenticate requests to the POSTscore API
+---
+
+# Authentication
+
+POSTscore uses **JWT Bearer tokens** for authentication. Tokens are issued on login and must be included in the `Authorization` header of protected requests.
+
+---
+
+## Sign Up
+
+Create a new player account.
+
+```http
+POST /api/v1/auth/signup
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "name": "Jane Golfer",
+  "email": "jane@example.com",
+  "zip": "90210",
+  "password": "supersecret"
+}
+```
+
+All four fields — `name`, `email`, `zip`, and `password` — are required.
+
+**Response:** Returns the newly created player object with a ULID `id`.
+
+---
+
+## Log In
+
+Authenticate and receive a JWT token.
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/x-www-form-urlencoded
+```
+
+This endpoint follows the **OAuth2 password flow** and expects form-encoded data (not JSON):
+
+```
+username=jane@example.com&password=supersecret
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+---
+
+## Get Current User
+
+Retrieve the profile of the currently authenticated player.
+
+```http
+GET /api/v1/auth/me
+Authorization: Bearer <your_token>
+```
+
+**Response:** Returns the player object for the token's subject.
+
+---
+
+## Using the Token
+
+Include the token as a **Bearer** token in the `Authorization` header of all protected requests:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Example with curl
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/players/me
+```
+
+### Example with fetch (JavaScript)
+
+```js
+const response = await fetch('http://localhost:8000/api/v1/rounds', {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+---
+
+## Token Expiry
+
+Tokens are valid for **1 week** from the time of issue. After expiry, log in again to receive a fresh token.
+
+---
+
+## Superuser Access
+
+Players with `is_super: true` have superuser privileges and can access admin endpoints. Admin endpoints are unprotected in development environments and protected in production.

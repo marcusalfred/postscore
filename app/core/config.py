@@ -4,10 +4,12 @@ This module manages all configuration for the application,
 with support for environment variables and different environments.
 """
 import os
-import secrets
 from typing import Dict, List, Optional, Union, Any
 from pydantic import AnyHttpUrl, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings
+
+
+_DEFAULT_SECRET_KEY = "dev-secret-key-do-not-use-in-production"
 
 
 class Settings(BaseSettings):
@@ -16,7 +18,8 @@ class Settings(BaseSettings):
     """
     # API Settings
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", secrets.token_urlsafe(32))
+    API_VERSION: str = "0.2.0"
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", _DEFAULT_SECRET_KEY)
     ALGORITHM: str = "HS256"
     # 60 minutes * 24 hours * 7 days = 1 week
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
@@ -33,30 +36,27 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
     
-    # Database
-    POSTGRES_SERVER: str = os.environ.get("POSTGRES_SERVER", "localhost")
-    POSTGRES_USER: str = os.environ.get("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD: str = os.environ.get("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_DB: str = os.environ.get("POSTGRES_DB", "postscore")
-    POSTGRES_PORT: str = os.environ.get("POSTGRES_PORT", "5432")
+    # Database — uses the same DB_* vars as docker-compose and db/database.py
+    DB_HOST: str = os.environ.get("DB_HOST", "localhost")
+    DB_USER: str = os.environ.get("DB_USER", "postgres")
+    DB_PASSWORD: str = os.environ.get("DB_PASSWORD", "postgres")
+    DB_NAME: str = os.environ.get("DB_NAME", "postscore")
+    DB_PORT: str = os.environ.get("DB_PORT", "5432")
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
-    
+
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: Optional[str], info) -> Any:
         if isinstance(v, str):
             return v
-        
-        # Get values from info directly
-        postgres_user = info.data.get("POSTGRES_USER")
-        postgres_password = info.data.get("POSTGRES_PASSWORD")
-        postgres_server = info.data.get("POSTGRES_SERVER")
-        postgres_port = info.data.get("POSTGRES_PORT")
-        postgres_db = info.data.get("POSTGRES_DB", "")
-        
-        # Manually construct the DSN string
-        db_url = f"postgresql://{postgres_user}:{postgres_password}@{postgres_server}:{postgres_port}/{postgres_db}"
+        db_url = (
+            f"postgresql://{info.data.get('DB_USER')}:{info.data.get('DB_PASSWORD')}"
+            f"@{info.data.get('DB_HOST')}:{info.data.get('DB_PORT')}/{info.data.get('DB_NAME', '')}"
+        )
         return db_url
+
+    # Initial superuser setup key
+    SETUP_SECRET: Optional[str] = os.environ.get("SETUP_SECRET", None) or None
     
     # Environment name
     ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "development")
@@ -67,9 +67,14 @@ class Settings(BaseSettings):
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
-        "case_sensitive": True
+        "case_sensitive": True,
+        "extra": "ignore"
     }
 
 
 # Create settings instance
-settings = Settings() 
+settings = Settings()
+
+
+def get_settings() -> Settings:
+    return settings 

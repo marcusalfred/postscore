@@ -1,0 +1,76 @@
+---
+title: API Reference
+description: Complete reference for the POSTscore REST API
+---
+
+# API Reference
+
+The POSTscore API is a RESTful API built with **FastAPI**. All endpoints are versioned under the `/api/v1/` prefix.
+
+The reference below is generated from the live **OpenAPI specification** served by the running API at `http://localhost:8000/openapi.json`.
+
+---
+
+## Base URL
+
+```
+http://localhost:8000/api/v1
+```
+
+---
+
+## Endpoint Groups
+
+| Group | Prefix | Description |
+|-------|--------|-------------|
+| **Authentication** | `/api/v1/auth/` | Sign up, log in, get current user |
+| **Players** | `/api/v1/players/` | Player management |
+| **Courses** | `/api/v1/courses/` | Golf course and tee box management |
+| **Rounds** | `/api/v1/rounds/` | Round scoring and history |
+| **Admin** | `/api/v1/admin/` | Administrative operations (superuser only in production) |
+
+---
+
+## IDs
+
+All resource IDs are **ULIDs** — 26-character lexicographically sortable strings. Example:
+
+```
+01ARZ3NDEKTSV4RRFFQ69G5FAV
+```
+
+---
+
+## Interactive Docs
+
+When the POSTscore API is running, you can explore and test all endpoints interactively:
+
+- **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **OpenAPI JSON:** [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
+
+---
+
+## Authentication
+
+Most endpoints require a valid JWT token. See the [Authentication guide](/docs/authentication) for how to obtain and use tokens.
+
+Protected endpoints require:
+
+```http
+Authorization: Bearer <your_token>
+```
+
+---
+
+## Data Model Relationships
+
+```
+Course
+  └── TeeBox          (tee color, rating, slope, yardage)
+        └── TeeBoxHole  (par, handicap, yardage per hole)
+
+Player
+  └── Round           (date, course, tee box played)
+        └── RoundHole   (score, putts, fairway, GIR per hole)
+```
