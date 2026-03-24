@@ -44,6 +44,71 @@ async def get_courses(
     return course_repository.get_all_with_tees(db, name=name)
 
 
+# These static-prefix routes must be declared before /{course_id} to avoid
+# FastAPI matching "tee-boxes" or "tee-box-holes" as a course_id path segment.
+
+@router.get(
+    "/tee-boxes/{tee_box_id}",
+    response_model=TeeBoxDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get detailed tee box information",
+    description="Retrieve detailed information for a tee box, including hole IDs.",
+    tags=["Courses"]
+)
+async def get_tee_box_detail(
+    tee_box_id: str = Path(..., description="The ID of the tee box to retrieve"),
+    db: Session = Depends(get_db),
+    current_user: Player = Depends(get_current_active_user)
+) -> TeeBoxDetailResponse:
+    """
+    Get detailed information for a tee box, including hole IDs.
+
+    Args:
+        tee_box_id: Tee box ID
+        db: Database session
+        current_user: Authenticated user
+
+    Returns:
+        TeeBoxDetailResponse: Tee box details with hole IDs
+
+    Raises:
+        ResourceNotFoundException: If the tee box is not found
+    """
+    tee_box_detail = course_repository.get_tee_box_detail(db, tee_box_id)
+    return TeeBoxDetailResponse(**tee_box_detail)
+
+
+@router.get(
+    "/tee-box-holes/{tee_box_hole_id}",
+    response_model=TeeBoxHoleDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get tee box hole details",
+    description="Retrieve detailed information for a specific tee box hole.",
+    tags=["Courses"]
+)
+async def get_tee_box_hole(
+    tee_box_hole_id: str = Path(..., description="The ID of the tee box hole to retrieve"),
+    db: Session = Depends(get_db),
+    current_user: Player = Depends(get_current_active_user)
+) -> TeeBoxHoleDetailResponse:
+    """
+    Get detailed information for a tee box hole.
+
+    Args:
+        tee_box_hole_id: Tee box hole ID
+        db: Database session
+        current_user: Authenticated user
+
+    Returns:
+        TeeBoxHoleDetailResponse: Tee box hole details
+
+    Raises:
+        ResourceNotFoundException: If the tee box hole is not found
+    """
+    tee_box_hole = course_repository.get_tee_box_hole(db, tee_box_hole_id)
+    return TeeBoxHoleDetailResponse(**tee_box_hole)
+
+
 @router.get(
     "/{course_id}",
     response_model=CourseResponse,
@@ -242,37 +307,6 @@ async def add_tee_boxes(
 
 
 @router.get(
-    "/tee-boxes/{tee_box_id}",
-    response_model=TeeBoxDetailResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Get detailed tee box information",
-    description="Retrieve detailed information for a tee box, including hole IDs.",
-    tags=["Courses"]
-)
-async def get_tee_box_detail(
-    tee_box_id: str = Path(..., description="The ID of the tee box to retrieve"),
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
-) -> TeeBoxDetailResponse:
-    """
-    Get detailed information for a tee box, including hole IDs.
-    
-    Args:
-        tee_box_id: Tee box ID
-        db: Database session
-        current_user: Authenticated user
-        
-    Returns:
-        TeeBoxDetailResponse: Tee box details with hole IDs
-        
-    Raises:
-        ResourceNotFoundException: If the tee box is not found
-    """
-    tee_box_detail = course_repository.get_tee_box_detail(db, tee_box_id)
-    return TeeBoxDetailResponse(**tee_box_detail)
-
-
-@router.get(
     "/{course_id}/tee-boxes",
     response_model=List[TeeBoxDetailResponse],
     status_code=status.HTTP_200_OK,
@@ -303,32 +337,3 @@ async def get_course_tee_boxes(
     return [TeeBoxDetailResponse(**tee_box) for tee_box in tee_boxes]
 
 
-@router.get(
-    "/tee-box-holes/{tee_box_hole_id}",
-    response_model=TeeBoxHoleDetailResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Get tee box hole details",
-    description="Retrieve detailed information for a specific tee box hole.",
-    tags=["Courses"]
-)
-async def get_tee_box_hole(
-    tee_box_hole_id: str = Path(..., description="The ID of the tee box hole to retrieve"),
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
-) -> TeeBoxHoleDetailResponse:
-    """
-    Get detailed information for a tee box hole.
-    
-    Args:
-        tee_box_hole_id: Tee box hole ID
-        db: Database session
-        current_user: Authenticated user
-        
-    Returns:
-        TeeBoxHoleDetailResponse: Tee box hole details
-        
-    Raises:
-        ResourceNotFoundException: If the tee box hole is not found
-    """
-    tee_box_hole = course_repository.get_tee_box_hole(db, tee_box_hole_id)
-    return TeeBoxHoleDetailResponse(**tee_box_hole) 

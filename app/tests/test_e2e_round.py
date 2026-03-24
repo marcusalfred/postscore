@@ -77,7 +77,7 @@ def test_full_round_e2e(client):
         "handicap": 6.4,
     })
     assert signup_resp.status_code == 201, signup_resp.text
-    player = signup_resp.json()
+    player = signup_resp.json()["player"]
     logger.info("Player created  id=%s  name=%s  handicap=%s",
                 player["id"], player["name"], player.get("handicap"))
 

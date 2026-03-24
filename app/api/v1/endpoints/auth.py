@@ -25,6 +25,7 @@ from schemas.pydantic_models import (
     Token,
     PlayerResponse,
     PlayerRequest,
+    SignupResponse,
 )
 from core.errors import ValidationException, AuthenticationException
 
@@ -78,29 +79,24 @@ async def login_for_access_token(
 
 @router.post(
     "/signup",
-    response_model=PlayerResponse,
+    response_model=SignupResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
-    description="Register a new player account with email and password.",
+    description="Register a new player account with email and password. Returns the player and a JWT access token.",
 )
 async def signup(
     player_data: PlayerRequest = Body(...),
     db: Session = Depends(get_db)
-) -> PlayerResponse:
+) -> SignupResponse:
     """
     Register a new player account.
-    
-    Args:
-        player_data: User data for registration
-        db: Database session
-        
-    Returns:
-        PlayerResponse: Created player
-        
+
+    Returns the created player and a JWT access token so the client
+    can proceed without a separate login call.
+
     Raises:
-        ValidationException: If email already exists or password is too short
+        ValidationException: If email already exists or password is missing
     """
-    # Check if email already exists
     existing_player = player_repository.get_by_email(db, player_data.email)
     if existing_player:
         raise ValidationException("Email already registered")
@@ -108,10 +104,18 @@ async def signup(
     if not player_data.password:
         raise ValidationException("Password is required for signup")
 
-    # Create the player
     player = player_repository.create_with_password(db, player_data)
-    
-    return PlayerResponse.model_validate(player)
+
+    access_token = create_access_token(
+        data={"sub": player.id},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+
+    return SignupResponse(
+        player=PlayerResponse.model_validate(player),
+        access_token=access_token,
+        token_type="bearer",
+    )
 
 
 @router.get(
