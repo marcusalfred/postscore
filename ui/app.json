@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "POSTscore",
+    "slug": "postscore",
+    "version": "1.0.0",
+    "scheme": "postscore",
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
