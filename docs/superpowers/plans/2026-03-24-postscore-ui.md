@@ -165,7 +165,7 @@ module.exports = withNativeWind(config, { input: './global.css' });
 ```json
 "jest": {
   "preset": "jest-expo",
-  "setupFilesAfterFramework": ["@testing-library/jest-native/extend-expect"],
+  "setupFilesAfterFrameworks": ["@testing-library/jest-native/extend-expect"],
   "transformIgnorePatterns": [
     "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
   ]
@@ -2801,7 +2801,7 @@ git commit -m "feat: Friends leaderboard with parallel player round fetches"
 ```tsx
 // ui/app/(tabs)/profile.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Alert, ScrollView, Switch } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ScrollView, Appearance } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCurrentPlayer, useUpdatePlayer } from '../../lib/queries';
 import { clearToken } from '../../lib/auth';
@@ -2845,6 +2845,8 @@ export default function ProfileScreen() {
   async function handleThemeChange(t: ThemeOption) {
     setThemeLocal(t);
     await setTheme(t);
+    // Apply immediately — don't wait for next cold start
+    Appearance.setColorScheme(t !== 'system' ? t : null);
   }
 
   async function handleLogout() {
