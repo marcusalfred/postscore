@@ -17,7 +17,7 @@ export function startOfflineQueueProcessor(): () => void {
     for (let i = 0; i < queue.length; i++) {
       const item = queue[i];
       try {
-        await apiFetch('POST', '/api/v1/rounds/holes', token, { body: item as unknown as Record<string, unknown> });
+        await apiFetch('POST', '/api/v1/rounds/holes', token, { body: item });
         await removeFromQueue(0); // always remove index 0 since we process in order
       } catch {
         break; // Still offline or server error — try again next reconnect
