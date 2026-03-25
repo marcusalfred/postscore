@@ -15,16 +15,19 @@ export function Avatar({ name, size = 40 }: Props) {
 
   return (
     <View
+      className="bg-[#e5e5e5] dark:bg-[#2a2a2a]"
       style={{
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: '#e5e5e5',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ fontWeight: 'bold', color: '#111111', fontSize: size * 0.35 }}>
+      <Text
+        className="text-[#111] dark:text-white"
+        style={{ fontWeight: 'bold', fontSize: size * 0.35 }}
+      >
         {initials}
       </Text>
     </View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, ActivityIndicator } from 'react-native';
+import { Pressable, Text, ActivityIndicator, useColorScheme } from 'react-native';
 
 type Props = {
   label: string;
@@ -18,29 +18,38 @@ export function Button({
 }: Props) {
   const isPrimary = variant === 'primary';
   const isDisabled = disabled || loading;
+  const isDark = useColorScheme() === 'dark';
 
   return (
     <Pressable
       onPress={isDisabled ? undefined : onPress}
       disabled={isDisabled}
+      className={
+        isPrimary
+          ? 'bg-[#111] dark:bg-white'
+          : 'border border-[#111] dark:border-white'
+      }
       style={{
         borderRadius: 12,
         paddingHorizontal: 24,
         paddingVertical: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: isPrimary ? '#111111' : 'transparent',
-        borderWidth: isPrimary ? 0 : 1,
-        borderColor: '#e5e5e5',
         opacity: isDisabled ? 0.4 : 1,
       }}
     >
-      {loading && <ActivityIndicator color={isPrimary ? '#fff' : '#111'} />}
+      {loading && (
+        <ActivityIndicator color={isPrimary ? (isDark ? '#111' : '#fff') : (isDark ? '#fff' : '#111')} />
+      )}
       <Text
+        className={
+          isPrimary
+            ? 'text-white dark:text-[#111]'
+            : 'text-[#111] dark:text-white'
+        }
         style={{
           fontWeight: '600',
           fontSize: 16,
-          color: isPrimary ? '#ffffff' : '#111111',
           opacity: loading ? 0 : 1,
         }}
       >

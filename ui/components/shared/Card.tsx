@@ -4,9 +4,9 @@ import { View, ViewProps } from 'react-native';
 export function Card({ children, style, ...props }: ViewProps) {
   return (
     <View
+      className="bg-white dark:bg-[#1c1c1e] border border-[#e5e5e5] dark:border-[#2a2a2a]"
       style={[
         {
-          backgroundColor: '#ffffff',
           borderRadius: 16,
           padding: 16,
           shadowColor: '#000',
