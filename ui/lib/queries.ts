@@ -189,7 +189,7 @@ export type TeeBoxBase = {
 
 export type TeeBoxDetailResponse = {
   id: string;
-  name: string;
+  tee: string;
   rating: number;
   slope: number;
   yardage: number;

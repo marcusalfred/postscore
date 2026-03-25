@@ -4,7 +4,7 @@ import { HoleCard, HoleCardState } from './HoleCard';
 import { HoleProgress } from './HoleProgress';
 import { ScoreLabel } from '../shared/ScoreLabel';
 import { Button } from '../shared/Button';
-import { ActiveRound, ScoredHoleEntry, saveActiveRound, clearActiveRound, enqueueOfflineHole } from '../../lib/storage';
+import { ActiveRound, ScoredHoleEntry, saveActiveRound, clearActiveRound, enqueueOfflineHole, getOfflineQueue, removeFromQueue } from '../../lib/storage';
 import { useScoreHole, useFinishRound } from '../../lib/queries';
 
 type Props = {
@@ -54,10 +54,16 @@ export function LiveScorecard({ round, onRoundUpdate, onFinish, onAbandon }: Pro
     await saveActiveRound(updated);
     onRoundUpdate(updated);
 
+    await enqueueOfflineHole(payload);  // save first
     try {
       await scoreHole.mutateAsync(payload);
+      // On API success, remove it from the offline queue
+      // The queue processor will handle syncing, but we can remove the just-submitted item
+      const queue = await getOfflineQueue();
+      const idx = queue.findIndex((q) => q.tee_box_hole_id === payload.tee_box_hole_id && q.round_id === payload.round_id);
+      if (idx !== -1) await removeFromQueue(idx);
     } catch {
-      await enqueueOfflineHole(payload);
+      // already in queue — will sync on reconnect
     }
 
     if (isLastHole) {

@@ -32,7 +32,9 @@ export default function FriendsTab() {
     })),
   });
 
-  if (loadingPlayers) {
+  const allRoundsSettled = roundQueries.every((q) => !q.isLoading);
+
+  if (loadingPlayers || (players && players.length > 0 && !allRoundsSettled)) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f5f5f5] dark:bg-[#111]">
         <ActivityIndicator />
