@@ -28,6 +28,7 @@ export default function PlayTab() {
   if (activeRound) {
     return (
       <LiveScorecard
+        key={activeRound.round_id}
         round={activeRound}
         onRoundUpdate={(updated) => setActiveRound(updated)}
         onFinish={(roundId) => {
@@ -87,7 +88,7 @@ export default function PlayTab() {
         />
 
         {loadingCourses && <ActivityIndicator className="my-4" />}
-        {!loadingCourses && filtered.length === 0 && (
+        {!loadingCourses && courses !== undefined && filtered.length === 0 && (
           <Text className="text-[#888] text-center my-4">No courses available. Add via the API.</Text>
         )}
         {filtered.map((course) => (
