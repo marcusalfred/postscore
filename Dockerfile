@@ -9,7 +9,7 @@ COPY app/ /app/app/
 COPY migrations/ /app/migrations/
 COPY alembic.ini /app/alembic.ini
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/app
 
 EXPOSE 8000
 

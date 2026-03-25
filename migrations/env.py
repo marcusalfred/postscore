@@ -6,8 +6,11 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Add the project root directory to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add both the project root and the app/ subdirectory to the Python path
+# so that both `import app.db.models` and `from db.database import ...` resolve correctly
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(_root)
+sys.path.append(os.path.join(_root, 'app'))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

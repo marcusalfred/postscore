@@ -38,9 +38,8 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "while ! nc -z db 5432; do sleep 1; done &&
-             alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "alembic upgrade head &&
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   pgdata:
