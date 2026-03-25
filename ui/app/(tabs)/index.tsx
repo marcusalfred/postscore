@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useCourses, useTeeBoxDetail, useStartRound, CourseResponse, TeeBoxBase } from '../../lib/queries';
 import { saveActiveRound, getActiveRound } from '../../lib/storage';
 import { Button } from '../../components/shared/Button';
+import { LiveScorecard } from '../../components/scorecard/LiveScorecard';
 
 export default function PlayTab() {
   const router = useRouter();
@@ -23,9 +24,19 @@ export default function PlayTab() {
     getActiveRound().then(setActiveRound);
   }, []);
 
-  // If there's an active round, show the scorecard (Task 13 replaces this placeholder)
+  // If there's an active round, show the live scorecard
   if (activeRound) {
-    return <ActiveScorecard round={activeRound} onClear={() => setActiveRound(null)} />;
+    return (
+      <LiveScorecard
+        round={activeRound}
+        onRoundUpdate={(updated) => setActiveRound(updated)}
+        onFinish={(roundId) => {
+          setActiveRound(null);
+          router.push(`/rounds/${roundId}`);
+        }}
+        onAbandon={() => setActiveRound(null)}
+      />
+    );
   }
 
   const filtered = (courses ?? []).filter((c) =>
@@ -136,17 +147,5 @@ export default function PlayTab() {
         </View>
       </View>
     </ScrollView>
-  );
-}
-
-// Placeholder — replaced in Task 13
-function ActiveScorecard({ round, onClear }: { round: NonNullable<Awaited<ReturnType<typeof getActiveRound>>>; onClear: () => void }) {
-  return (
-    <View className="flex-1 items-center justify-center bg-[#f5f5f5] dark:bg-[#111]">
-      <Text className="text-[#111] dark:text-white">Round in progress...</Text>
-      <Pressable onPress={onClear} className="mt-4">
-        <Text className="text-[#e53935]">Abandon Round</Text>
-      </Pressable>
-    </View>
   );
 }
