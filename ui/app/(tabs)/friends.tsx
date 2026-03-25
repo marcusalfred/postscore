@@ -51,7 +51,9 @@ export default function FriendsTab() {
         .slice(0, 5);
       if (last5.length === 0) return { player, roundCount: result.data.length, avgScore: null, avgToPar: null };
       const avgScore = last5.reduce((s, r) => s + (r.total_score ?? 0), 0) / last5.length;
-      // avgToPar: use avgScore - 72 as a proxy (par 72 assumption)
+      // v1 known limitation: uses par-72 as a proxy. Courses with different par
+      // will show incorrect to-par values. A future improvement would fetch
+      // per-round stats to compute exact to-par.
       const avgToPar = Math.round(avgScore - 72);
       return { player, roundCount: result.data.length, avgScore, avgToPar };
     })

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, Alert, ScrollView, Appearance } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ScrollView, Appearance, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCurrentPlayer, useUpdatePlayer } from '../../lib/queries';
 import { clearToken } from '../../lib/auth';
@@ -30,7 +30,7 @@ export default function ProfileScreen() {
         playerId: me.id,
         data: {
           name: name.trim() || undefined,
-          handicap: handicap ? parseFloat(handicap) : undefined,
+          handicap: handicap ? (isNaN(parseFloat(handicap)) ? undefined : parseFloat(handicap)) : undefined,
         },
       });
       Alert.alert('Saved');
@@ -50,7 +50,13 @@ export default function ProfileScreen() {
     router.replace('/login');
   }
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#f5f5f5] dark:bg-[#111]">
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <ScrollView className="flex-1 bg-[#f5f5f5] dark:bg-[#111]">
