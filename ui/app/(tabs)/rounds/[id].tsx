@@ -12,7 +12,7 @@ export default function RoundSummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: round, isLoading: loadingRound, isError: errorRound, refetch } = useRoundDetail(id);
-  const { data: stats, isLoading: loadingStats, isError: errorStats } = useRoundStats(id);
+  const { data: stats, isLoading: loadingStats, isError: errorStats, refetch: refetchStats } = useRoundStats(id);
   const { data: teeBox } = useTeeBoxDetail(round?.tee_box_id ?? null);
   const holeMap = new Map(teeBox?.holes.map((h) => [h.id, h]) ?? []);
 
@@ -28,7 +28,7 @@ export default function RoundSummaryScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-[#f5f5f5] dark:bg-[#111] px-6">
         <Text className="text-[#111] dark:text-white mb-4">Could not load round stats.</Text>
-        <Pressable onPress={() => refetch()} className="px-6 py-3 bg-[#111] dark:bg-white rounded-xl">
+        <Pressable onPress={() => { refetch(); refetchStats(); }} className="px-6 py-3 bg-[#111] dark:bg-white rounded-xl">
           <Text className="text-white dark:text-[#111] font-semibold">Retry</Text>
         </Pressable>
       </View>

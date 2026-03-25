@@ -21,7 +21,7 @@ export function RoundCard({ round, courses, onPress }: Props) {
       <Card style={{ marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111' }}>
+            <Text className="font-bold text-base text-[#111] dark:text-white">
               {course?.name ?? 'Unknown Course'}
             </Text>
             <Text style={{ color: '#888', fontSize: 14, marginTop: 2 }}>
@@ -29,7 +29,7 @@ export function RoundCard({ round, courses, onPress }: Props) {
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111' }}>
+            <Text className="text-2xl font-bold text-[#111] dark:text-white">
               {round.total_score ?? '\u2014'}
             </Text>
           </View>
