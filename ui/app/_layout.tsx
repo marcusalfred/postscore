@@ -19,7 +19,7 @@ export default function RootLayout() {
       if (storedTheme && storedTheme !== 'system') {
         Appearance.setColorScheme(storedTheme);
       }
-    });
+    }).catch(console.error);
 
     // Start offline queue processor
     const unsub = startOfflineQueueProcessor();
@@ -35,8 +35,9 @@ export default function RootLayout() {
       } else if (token && inAuthGroup) {
         router.replace('/');
       }
-      setReady(true);
+      if (!ready) setReady(true);
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments]);
 
   if (!ready) return null;
