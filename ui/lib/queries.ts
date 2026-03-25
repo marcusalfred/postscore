@@ -129,7 +129,7 @@ export function useScoreHole() {
       penalties?: number;
     }) => {
       const t = await token();
-      return apiFetch('POST', '/api/v1/rounds/holes', t, { body: payload });
+      return apiFetch<RoundHoleResponse>('POST', '/api/v1/rounds/holes', t, { body: payload });
     },
   });
 }
@@ -146,6 +146,7 @@ export function useFinishRound() {
     onSuccess: (_, { roundId }) => {
       qc.invalidateQueries({ queryKey: ['rounds'] });
       qc.invalidateQueries({ queryKey: ['round', roundId] });
+      qc.invalidateQueries({ queryKey: ['roundStats', roundId] });
     },
   });
 }
@@ -181,10 +182,9 @@ export type CourseResponse = {
 
 export type TeeBoxBase = {
   tee_id: string;
-  name: string;
-  rating: number;
-  slope: number;
-  yardage: number;
+  tee: string;
+  rating: number | null;
+  slope: number | null;
 };
 
 export type TeeBoxDetailResponse = {
