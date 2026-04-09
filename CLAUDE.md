@@ -8,7 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 docker compose up --build -d
 ```
-API available at `http://localhost:8000`. Docs at `http://localhost:8000/docs`.
+- API: `http://localhost:8000` — Docs at `http://localhost:8000/docs`
+- Web UI: `http://localhost:3000`
+
+**Web UI locally (without Docker):**
+```bash
+cd web
+npm install
+npm run dev   # http://localhost:3000
+```
+Requires `web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`.
 
 **Locally with uvicorn:**
 ```bash
@@ -68,6 +77,19 @@ All application code lives under `app/`. The entry point is `app/main.py`, which
 ### Auth model
 
 Players authenticate via `POST /api/v1/auth/login` (OAuth2 password flow). JWT token encodes `player.id` as `sub`. `is_super=True` on a `Player` grants superuser access. Admin endpoints are unprotected in development (`ENVIRONMENT != "production"`), protected in production.
+
+## Web UI (`web/`)
+
+Next.js 15 App Router app — a full migration of the Expo UI to web.
+
+- **`web/app/`** — App Router pages. Route groups: `(auth)` for login/signup, `(tabs)` for the main tabbed shell.
+- **`web/components/`** — Shared, rounds, and scorecard components (HTML equivalents of the RN originals).
+- **`web/lib/`** — API client, auth (localStorage), queries (TanStack Query), storage (localStorage), offline queue.
+- **`web/providers/`** — `QueryProvider` and `ThemeProvider` (next-themes) client wrappers.
+- Dark mode via `next-themes` with `attribute="class"` — same `dark:` Tailwind classes throughout.
+- Offline hole-scoring queue uses `window.addEventListener('online', ...)` to flush on reconnect.
+
+> **Note:** `ui/` (the original Expo app) is kept for reference but is no longer the active frontend. It will be archived once the web app is confirmed solid.
 
 ### Data model hierarchy
 

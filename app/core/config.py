@@ -24,8 +24,9 @@ class Settings(BaseSettings):
     # 60 minutes * 24 hours * 7 days = 1 week
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
-    # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    # CORS — stored as plain strings to avoid AnyHttpUrl normalization stripping
+    # trailing slashes or altering origins in ways that break the CORS middleware match.
+    BACKEND_CORS_ORIGINS: List[str] = []
     
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

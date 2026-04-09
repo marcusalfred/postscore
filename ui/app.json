@@ -6,7 +6,7 @@
     "scheme": "postscore",
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "single"
     },
     "plugins": [
       "expo-router",
@@ -14,6 +14,19 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b6db1513-e88c-4649-afd3-683dcc303dd4"
+      }
+    },
+    "owner": "malfred",
+    "ios": {
+      "bundleIdentifier": "com.malfred.postscore",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     }
   }
 }

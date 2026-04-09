@@ -162,3 +162,16 @@ cython_debug/
 # Todo's that I don't want to share 
 TODO.md*.db
 .superpowers/
+.ant-colony/
+
+# Virtual environments
+.venv310/
+
+# Next.js web app
+web/node_modules/
+web/.next/
+web/.env.local
+web/*.tsbuildinfo
+
+# pi config
+.pi/

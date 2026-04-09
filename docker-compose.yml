@@ -30,6 +30,7 @@ services:
       JWT_SECRET_KEY: your-secret-key-here
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8081"]'
     volumes:
       - .:/app
     ports:
@@ -40,6 +41,22 @@ services:
     command: >
       sh -c "alembic upgrade head &&
              python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: postscore_web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+      - /app/.next
 
 volumes:
   pgdata:
